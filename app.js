@@ -1,112 +1,153 @@
 const SIZE = 10, CELL = 40, LEFT = 60, TOP = 20;
-const COLORS = { blue: { fill: '#638fda', edge: '#386ac0', name: '蓝色' } };
-const board = Array(SIZE * SIZE).fill(null);
+const BLUE = '#638fda', BLUE_DARK = '#386ac0';
 const $ = id => document.getElementById(id);
-let questionCount = 0;
+let full = new Set(), pairs = [], progress = 0, animation = null, questionCount = 0;
 
+function rowOf(index) { return Math.floor(index / SIZE); }
+function colOf(index) { return index % SIZE; }
 function neighbors(index) {
-  const row = Math.floor(index / SIZE), col = index % SIZE;
+  const r = rowOf(index), c = colOf(index);
   return [
-    row > 0 ? index - SIZE : -1,
-    row < SIZE - 1 ? index + SIZE : -1,
-    col > 0 ? index - 1 : -1,
-    col < SIZE - 1 ? index + 1 : -1
+    r > 0 ? index - SIZE : -1,
+    r < SIZE - 1 ? index + SIZE : -1,
+    c > 0 ? index - 1 : -1,
+    c < SIZE - 1 ? index + 1 : -1
   ].filter(i => i >= 0);
 }
+function randomItem(items) { return items[Math.floor(Math.random() * items.length)]; }
 
-function growShape(color, minCol, maxCol, target) {
-  const row = 2 + Math.floor(Math.random() * 6);
-  const col = minCol + 1 + Math.floor(Math.random() * Math.max(1, maxCol - minCol - 1));
-  const occupied = new Set([row * SIZE + col]);
-  board[row * SIZE + col] = color;
-  while (occupied.size < target) {
-    const choices = [...occupied].flatMap(neighbors).filter(index => {
-      const c = index % SIZE;
-      return c >= minCol && c <= maxCol && board[index] === null;
+function growFull(target) {
+  full = new Set([44]);
+  while (full.size < target) {
+    const choices = [...full].flatMap(neighbors).filter(index => {
+      const r = rowOf(index), c = colOf(index);
+      return r >= 1 && r <= 8 && c >= 1 && c <= 8 && !full.has(index);
     });
-    if (!choices.length) break;
-    const next = choices[Math.floor(Math.random() * choices.length)];
-    occupied.add(next);
-    board[next] = color;
+    if (!choices.length) return false;
+    full.add(randomItem(choices));
   }
+  return true;
+}
+
+function choosePairs() {
+  const empty = Array.from({ length: 100 }, (_, i) => i).filter(i => !full.has(i));
+  const touchesTopOrLeft = i => (rowOf(i) > 0 && full.has(i - SIZE)) || (colOf(i) > 0 && full.has(i - 1));
+  const touchesBottomOrRight = i => (rowOf(i) < 9 && full.has(i + SIZE)) || (colOf(i) < 9 && full.has(i + 1));
+  const tl = empty.filter(touchesTopOrLeft);
+  const br = empty.filter(touchesBottomOrRight);
+  if (tl.length < 3 || br.length < 1) return false;
+  const used = new Set();
+  const pick = candidates => {
+    const options = candidates.filter(i => !used.has(i));
+    if (!options.length) return null;
+    const selected = randomItem(options);
+    used.add(selected);
+    return selected;
+  };
+  const anchor1 = pick(tl), mover1 = pick(br), anchor2 = pick(tl), mover2 = pick(tl);
+  if ([anchor1, mover1, anchor2, mover2].some(i => i === null)) return false;
+  pairs = [
+    { anchor: anchor1, mover: mover1, rotate: false },
+    { anchor: anchor2, mover: mover2, rotate: true }
+  ];
+  return true;
+}
+
+function stopAnimation() {
+  if (animation !== null) cancelAnimationFrame(animation);
+  animation = null;
+  $('play-button').textContent = '▶ 播放';
 }
 
 function generateBoard() {
-  board.fill(null);
-  growShape('blue', 0, 9, 20 + Math.floor(Math.random() * 11));
-  renderBoard();
-  newQuestion();
+  stopAnimation();
+  progress = 0;
+  $('motion-progress').value = 0;
+  for (let attempt = 0; attempt < 100; attempt++) {
+    if (growFull(18 + Math.floor(Math.random() * 9)) && choosePairs()) {
+      renderBoard();
+      newQuestion();
+      return;
+    }
+  }
+  throw new Error('无法生成可拼合的图形');
 }
 
-const count = color => board.filter(cell => cell === color).length;
+function cellX(index) { return LEFT + colOf(index) * CELL; }
+function cellY(index) { return TOP + rowOf(index) * CELL; }
+function triangle(index, orientation, attributes = '') {
+  const x = cellX(index), y = cellY(index);
+  const points = orientation === 'TL'
+    ? `${x},${y} ${x + CELL},${y} ${x},${y + CELL}`
+    : `${x + CELL},${y} ${x + CELL},${y + CELL} ${x},${y + CELL}`;
+  return `<polygon points="${points}" ${attributes}/>`;
+}
 
 function renderBoard() {
   let svg = '<rect x="0" y="0" width="520" height="440" fill="#fff"/>';
-  board.forEach((color, index) => {
-    if (!color) return;
-    const x = LEFT + (index % SIZE) * CELL;
-    const y = TOP + Math.floor(index / SIZE) * CELL;
-    svg += `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" fill="${COLORS[color].fill}"/>`;
+  full.forEach(index => {
+    svg += `<rect x="${cellX(index)}" y="${cellY(index)}" width="${CELL}" height="${CELL}" fill="${BLUE}"/>`;
   });
+  pairs.forEach(pair => { svg += triangle(pair.anchor, 'TL', `fill="${BLUE}"`); });
   for (let i = 0; i <= SIZE; i++) {
     const x = LEFT + i * CELL, y = TOP + i * CELL;
     svg += `<line x1="${x}" y1="${TOP}" x2="${x}" y2="${TOP + SIZE * CELL}" stroke="#87918f" stroke-width="${i === 0 || i === SIZE ? 1.8 : 1}" opacity=".8"/>`;
     svg += `<line x1="${LEFT}" y1="${y}" x2="${LEFT + SIZE * CELL}" y2="${y}" stroke="#87918f" stroke-width="${i === 0 || i === SIZE ? 1.8 : 1}" opacity=".8"/>`;
   }
-  board.forEach((color, index) => {
-    if (!color) return;
-    const x = LEFT + (index % SIZE) * CELL, y = TOP + Math.floor(index / SIZE) * CELL;
-    const row = Math.floor(index / SIZE), col = index % SIZE;
-    const edges = [
-      [row === 0 || board[index - SIZE] !== color, x, y, x + CELL, y],
-      [col === SIZE - 1 || board[index + 1] !== color, x + CELL, y, x + CELL, y + CELL],
-      [row === SIZE - 1 || board[index + SIZE] !== color, x, y + CELL, x + CELL, y + CELL],
-      [col === 0 || board[index - 1] !== color, x, y, x, y + CELL]
-    ];
-    edges.forEach(([show, x1, y1, x2, y2]) => {
-      if (show) svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${COLORS[color].edge}" stroke-width="2.6" stroke-linecap="square"/>`;
+  const p = progress / 100;
+  pairs.forEach(pair => {
+    const x = cellX(pair.mover), y = cellY(pair.mover);
+    const dx = (cellX(pair.anchor) - x) * p;
+    const dy = (cellY(pair.anchor) - y) * p;
+    const angle = pair.rotate ? 180 * p : 0;
+    const orientation = pair.rotate ? 'TL' : 'BR';
+    if (progress > 0) svg += triangle(pair.mover, orientation, 'fill="none" stroke="#9eb9df" stroke-width="2" stroke-dasharray="5 4"');
+    svg += `<g transform="translate(${dx} ${dy}) rotate(${angle} ${x + CELL/2} ${y + CELL/2})">${triangle(pair.mover, orientation, `fill="${BLUE}" stroke="${BLUE_DARK}" stroke-width="2" stroke-linejoin="miter"`)}</g>`;
+  });
+  if (progress === 100) {
+    pairs.forEach(pair => {
+      svg += `<rect x="${cellX(pair.anchor)}" y="${cellY(pair.anchor)}" width="${CELL}" height="${CELL}" fill="none" stroke="#1d786f" stroke-width="3"/>`;
     });
-  });
-  board.forEach((color, index) => {
-    const x = LEFT + (index % SIZE) * CELL, y = TOP + Math.floor(index / SIZE) * CELL;
-    svg += `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" fill="transparent" data-index="${index}" tabindex="0" role="button" aria-label="第 ${Math.floor(index / SIZE) + 1} 行第 ${index % SIZE + 1} 列，${color ? COLORS[color].name : '空白'}方格"/>`;
-  });
+  }
   $('shape-canvas').innerHTML = svg;
-  const blue = count('blue');
-  $('blue-count').textContent = blue;
-  $('total-count').textContent = `${blue} cm²`;
-  $('calculation-text').textContent = `${blue} 个小方格 × 1 cm² = ${blue} cm²`;
-  $('shape-canvas').setAttribute('aria-label', `10 乘 10 方格纸，共 100 格。蓝色图形 ${blue} 格，面积 ${blue} 平方厘米。点击方格可以涂色。`);
+  const area = full.size + pairs.length;
+  $('blue-count').textContent = area;
+  $('total-count').textContent = `${area} cm²`;
+  $('calculation-text').textContent = `${full.size} 个整格 + 4 个半格 = ${area} cm²`;
+  $('motion-percent').textContent = `${progress}%`;
+  $('motion-note').textContent = progress === 0 ? '4 个半格中，两块将通过运动去补齐另外两块' : progress === 100 ? '拼好了！4 个半格变成 2 个整格' : '一块在平移，另一块旋转并平移';
+  $('shape-canvas').setAttribute('aria-label', `蓝色不规则图形：${full.size} 个整格和 4 个半格，面积 ${area} 平方厘米。拼合进度 ${progress}%。`);
 }
 
-function cycleCell(index) {
-  board[index] = board[index] === null ? 'blue' : null;
+$('motion-progress').addEventListener('input', event => {
+  stopAnimation();
+  progress = Number(event.target.value);
   renderBoard();
-  $('answer-feedback').textContent = '图形变了，再数一数吧！';
-  $('answer-feedback').className = 'feedback';
-}
-
-$('shape-canvas').addEventListener('click', event => {
-  const index = event.target.dataset.index;
-  if (index !== undefined) cycleCell(Number(index));
 });
-$('shape-canvas').addEventListener('keydown', event => {
-  const index = event.target.dataset.index;
-  if (index === undefined || !['Enter', ' '].includes(event.key)) return;
-  event.preventDefault();
-  cycleCell(Number(index));
-  $('shape-canvas').querySelector(`[data-index="${index}"]`).focus();
+$('play-button').addEventListener('click', () => {
+  if (animation !== null) { stopAnimation(); return; }
+  if (progress >= 100) progress = 0;
+  const initial = progress, start = performance.now();
+  $('play-button').textContent = 'Ⅱ 暂停';
+  const frame = now => {
+    progress = Math.min(100, Math.round(initial + (100 - initial) * (now - start) / 1900));
+    $('motion-progress').value = progress;
+    renderBoard();
+    if (progress < 100) animation = requestAnimationFrame(frame);
+    else stopAnimation();
+  };
+  animation = requestAnimationFrame(frame);
 });
 $('regenerate-button').addEventListener('click', generateBoard);
 
 function newQuestion() {
   questionCount++;
   $('question-number').textContent = `${String(questionCount).padStart(2, '0')} / ∞`;
-  $('question-icon').textContent = '■';
-  $('question-icon').style.color = COLORS.blue.fill;
+  $('question-icon').textContent = '◩';
+  $('question-icon').style.color = BLUE;
   $('question-text').textContent = '蓝色图形的面积是多少 cm²？';
   $('answer-input').value = '';
-  $('answer-feedback').textContent = '先动手数数看吧！';
+  $('answer-feedback').textContent = '提示：两个半格拼成一整格。';
   $('answer-feedback').className = 'feedback';
 }
 
@@ -114,9 +155,11 @@ function checkAnswer() {
   const input = $('answer-input').value.trim();
   const feedback = $('answer-feedback');
   if (!input) { feedback.textContent = '先输入你的答案。'; feedback.className = 'feedback incorrect'; return; }
-  const answer = count('blue');
-  const correct = Number(input) === answer;
-  feedback.textContent = correct ? `答对了！${answer} 个方格 × 1 cm² = ${answer} cm²。` : '再数一数涂色的完整小方格，每格是 1 cm²。';
+  const area = full.size + pairs.length;
+  const correct = Number(input) === area;
+  feedback.textContent = correct
+    ? `答对了！${full.size} 个整格 + 4 个半格 = ${area} cm²。`
+    : '再试一次：先数整格，再把 4 个半格看成 2 个整格。';
   feedback.className = `feedback ${correct ? 'correct' : 'incorrect'}`;
 }
 
