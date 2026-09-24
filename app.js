@@ -1,11 +1,8 @@
 const SIZE = 10, CELL = 40, LEFT = 60, TOP = 20;
-const COLORS = {
-  blue: { fill: '#638fda', edge: '#386ac0', name: '蓝色' },
-  purple: { fill: '#a080d9', edge: '#7955bb', name: '紫色' }
-};
+const COLORS = { blue: { fill: '#638fda', edge: '#386ac0', name: '蓝色' } };
 const board = Array(SIZE * SIZE).fill(null);
 const $ = id => document.getElementById(id);
-let questionCount = 0, currentQuestion = 'blue';
+let questionCount = 0;
 
 function neighbors(index) {
   const row = Math.floor(index / SIZE), col = index % SIZE;
@@ -36,8 +33,7 @@ function growShape(color, minCol, maxCol, target) {
 
 function generateBoard() {
   board.fill(null);
-  growShape('blue', 0, 4, 16 + Math.floor(Math.random() * 8));
-  growShape('purple', 5, 9, 14 + Math.floor(Math.random() * 9));
+  growShape('blue', 0, 9, 20 + Math.floor(Math.random() * 11));
   renderBoard();
   newQuestion();
 }
@@ -76,16 +72,15 @@ function renderBoard() {
     svg += `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" fill="transparent" data-index="${index}" tabindex="0" role="button" aria-label="第 ${Math.floor(index / SIZE) + 1} 行第 ${index % SIZE + 1} 列，${color ? COLORS[color].name : '空白'}方格"/>`;
   });
   $('shape-canvas').innerHTML = svg;
-  const blue = count('blue'), purple = count('purple');
+  const blue = count('blue');
   $('blue-count').textContent = blue;
-  $('purple-count').textContent = purple;
-  $('total-count').textContent = `${blue + purple} 格`;
-  $('calculation-text').textContent = `蓝色 ${blue} 格 + 紫色 ${purple} 格 = ${blue + purple} cm²`;
-  $('shape-canvas').setAttribute('aria-label', `10 乘 10 方格纸，共 100 格。蓝色图形 ${blue} 格，紫色图形 ${purple} 格。点击方格可以涂色。`);
+  $('total-count').textContent = `${blue} cm²`;
+  $('calculation-text').textContent = `${blue} 个小方格 × 1 cm² = ${blue} cm²`;
+  $('shape-canvas').setAttribute('aria-label', `10 乘 10 方格纸，共 100 格。蓝色图形 ${blue} 格，面积 ${blue} 平方厘米。点击方格可以涂色。`);
 }
 
 function cycleCell(index) {
-  board[index] = board[index] === null ? 'blue' : board[index] === 'blue' ? 'purple' : null;
+  board[index] = board[index] === null ? 'blue' : null;
   renderBoard();
   $('answer-feedback').textContent = '图形变了，再数一数吧！';
   $('answer-feedback').className = 'feedback';
@@ -105,13 +100,11 @@ $('shape-canvas').addEventListener('keydown', event => {
 $('regenerate-button').addEventListener('click', generateBoard);
 
 function newQuestion() {
-  const types = ['blue', 'purple', 'total'];
-  currentQuestion = types[Math.floor(Math.random() * types.length)];
   questionCount++;
   $('question-number').textContent = `${String(questionCount).padStart(2, '0')} / ∞`;
-  $('question-icon').textContent = currentQuestion === 'blue' ? '■' : currentQuestion === 'purple' ? '◆' : '▦';
-  $('question-icon').style.color = currentQuestion === 'blue' ? COLORS.blue.fill : currentQuestion === 'purple' ? COLORS.purple.fill : '#f2a75f';
-  $('question-text').textContent = currentQuestion === 'total' ? '蓝色和紫色图形一共占了多少 cm²？' : `${COLORS[currentQuestion].name}图形的面积是多少 cm²？`;
+  $('question-icon').textContent = '■';
+  $('question-icon').style.color = COLORS.blue.fill;
+  $('question-text').textContent = '蓝色图形的面积是多少 cm²？';
   $('answer-input').value = '';
   $('answer-feedback').textContent = '先动手数数看吧！';
   $('answer-feedback').className = 'feedback';
@@ -121,13 +114,13 @@ function checkAnswer() {
   const input = $('answer-input').value.trim();
   const feedback = $('answer-feedback');
   if (!input) { feedback.textContent = '先输入你的答案。'; feedback.className = 'feedback incorrect'; return; }
-  const answer = currentQuestion === 'total' ? count('blue') + count('purple') : count(currentQuestion);
+  const answer = count('blue');
   const correct = Number(input) === answer;
   feedback.textContent = correct ? `答对了！${answer} 个方格 × 1 cm² = ${answer} cm²。` : '再数一数涂色的完整小方格，每格是 1 cm²。';
   feedback.className = `feedback ${correct ? 'correct' : 'incorrect'}`;
 }
 
-$('new-question').addEventListener('click', newQuestion);
+$('new-question').addEventListener('click', generateBoard);
 $('check-answer').addEventListener('click', checkAnswer);
 $('answer-input').addEventListener('keydown', event => { if (event.key === 'Enter') checkAnswer(); });
 generateBoard();

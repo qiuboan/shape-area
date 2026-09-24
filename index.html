@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f5ef">
-  <meta name="description" content="动手平移、旋转和拼接图形，直观理解长方形、平行四边形、三角形与梯形的面积。">
+  <meta name="description" content="在 100 个小方格中生成蓝色不规则图形，动手涂色并直观计算图形的面积。">
   <title>图形动起来 · 面积看得见</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="app.js" defer></script>
+  <script src="app.js?v=3" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -39,18 +39,18 @@
 
     <section class="explore-section" id="explore" aria-labelledby="explore-title">
       <div class="wrap">
-        <div class="section-heading"><div><div class="section-kicker">01 / 动手探索</div><h2 id="explore-title">在方格纸上发现面积</h2><p>一张白色方格纸，100 个小方格。蓝色和紫色的不规则图形，每次都会有新模样。</p></div><div class="scribble" aria-hidden="true">↘</div></div>
+        <div class="section-heading"><div><div class="section-kicker">01 / 动手探索</div><h2 id="explore-title">在方格纸上发现面积</h2><p>一张白色方格纸，100 个小方格。每次打开，都会出现一个新的蓝色不规则图形。</p></div><div class="scribble" aria-hidden="true">↘</div></div>
         <div class="lab-card grid-lab">
           <div class="lab-main">
             <div class="canvas-head"><div><span class="live-dot"></span> 100 格创作纸</div><span class="unit-label">10 × 10 · 每格 1 cm²</span></div>
-            <div class="canvas-wrap graph-paper"><svg id="shape-canvas" viewBox="0 0 520 440" role="img" aria-label="一张 10 乘 10 的方格纸，里面有蓝色和紫色的不规则图形"></svg></div>
-            <div class="canvas-footer"><span>点击小方格：空白 → 蓝色 → 紫色 → 空白</span><span>✎ 动手涂色</span></div>
+            <div class="canvas-wrap graph-paper"><svg id="shape-canvas" viewBox="0 0 520 440" role="img" aria-label="一张 10 乘 10 的方格纸，里面有一个蓝色不规则图形"><rect x="0" y="0" width="520" height="440" fill="#fff"/><g fill="#638fda"><rect x="140" y="60" width="80" height="40"/><rect x="100" y="100" width="160" height="40"/><rect x="60" y="140" width="200" height="40"/><rect x="100" y="180" width="120" height="40"/><rect x="140" y="220" width="80" height="40"/></g><defs><pattern id="initial-grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#87918f" stroke-width="1"/></pattern></defs><rect x="60" y="20" width="400" height="400" fill="url(#initial-grid)" stroke="#87918f" stroke-width="1.8"/></svg></div>
+            <div class="canvas-footer"><span>点击小方格：空白 → 蓝色 → 空白</span><span>✎ 动手涂色</span></div>
           </div>
           <aside class="lab-sidebar">
             <div class="sidebar-top"><span class="pill">方格面积实验</span><span class="lesson-number">100 / 100</span></div>
-            <h3>不规则，也能算面积</h3><p class="shape-description">这些图形没有曲线，边都沿着方格线走。数一数涂色的小方格，就知道各自的面积。</p>
-            <div class="color-counts"><div class="color-count blue"><span class="color-swatch"></span><span>蓝色图形</span><strong id="blue-count">0</strong><small>cm²</small></div><div class="color-count purple"><span class="color-swatch"></span><span>紫色图形</span><strong id="purple-count">0</strong><small>cm²</small></div></div>
-            <div class="formula-box"><div class="formula-caption">一起数一数 <span>✦</span></div><div class="formula" id="total-count">0 格</div><div class="calculation" id="calculation-text">蓝色 0 格 + 紫色 0 格 = 0 cm²</div></div>
+            <h3>不规则，也能算面积</h3><p class="shape-description">蓝色图形没有曲线，边都沿着方格线走。数一数涂色的小方格，就知道它的面积。</p>
+            <div class="color-counts"><div class="color-count blue"><span class="color-swatch"></span><span>蓝色图形面积</span><strong id="blue-count">16</strong><small>cm²</small></div></div>
+            <div class="formula-box"><div class="formula-caption">一起数一数 <span>✦</span></div><div class="formula" id="total-count">16 cm²</div><div class="calculation" id="calculation-text">16 个小方格 × 1 cm² = 16 cm²</div></div>
             <button class="regenerate-button" id="regenerate-button" type="button">↻ 重新生成图形</button>
             <p class="insight">图形再不规则，每个完整小方格仍然是 1 cm²。你也可以直接点击方格，画出自己的图形。</p>
           </aside>
@@ -63,12 +63,12 @@
       <div class="section-heading"><div><div class="section-kicker">02 / 运动方法</div><h2 id="ideas-title">图形运动的三个小魔法</h2><p>图形可以换位置、转方向，也能沿一条线翻过去。</p></div></div>
       <div class="idea-grid">
         <article class="idea-card"><div class="idea-visual move-visual"><span class="ghost-square"></span><span class="solid-square"></span><span class="idea-arrow">⟶</span></div><span class="idea-num">01</span><h3>平移</h3><p>沿着一个方向移动。形状、大小和面积都不变。</p><span class="idea-example">想象蓝色图形在方格纸上移动 ↗</span></article>
-        <article class="idea-card"><div class="idea-visual rotate-visual"><span class="ghost-triangle"></span><span class="solid-triangle"></span><span class="rotate-mark">↻</span></div><span class="idea-num">02</span><h3>旋转</h3><p>绕着一个点转动。转过之后，面积还是一样大。</p><span class="idea-example">想象紫色图形转个方向 ↗</span></article>
+        <article class="idea-card"><div class="idea-visual rotate-visual"><span class="ghost-triangle"></span><span class="solid-triangle"></span><span class="rotate-mark">↻</span></div><span class="idea-num">02</span><h3>旋转</h3><p>绕着一个点转动。转过之后，面积还是一样大。</p><span class="idea-example">想象蓝色图形转个方向 ↗</span></article>
         <article class="idea-card"><div class="idea-visual mirror-visual"><span class="mirror-line"></span><span class="mirror-left">◢</span><span class="mirror-right">◣</span></div><span class="idea-num">03</span><h3>轴对称</h3><p>沿对称轴翻折，两边的图形能够完全重合。</p><span class="idea-example">在方格纸上找一找对称轴 ↗</span></article>
       </div>
     </section>
 
-    <section class="challenge-section" id="challenge" aria-labelledby="challenge-title"><div class="wrap challenge-layout"><div class="challenge-copy"><div class="section-kicker">03 / 闯关练习</div><h2 id="challenge-title">轮到你来数！</h2><p>看看上面的方格纸，先数出涂色方格，再来检查答案。重新生成图形，就有新的挑战。</p><button class="button dark" id="new-question" type="button">换一道题 <span aria-hidden="true">↗</span></button></div><div class="question-card"><div class="question-top"><span>面积挑战</span><span id="question-number">01 / ∞</span></div><div class="question-icon" id="question-icon">▦</div><h3 id="question-text">蓝色图形的面积是多少？</h3><div class="answer-row"><label for="answer-input">我的答案</label><div class="input-wrap"><input id="answer-input" type="number" min="0" step="1" placeholder="输入数字" inputmode="numeric"><span>cm²</span></div><button id="check-answer" type="button">检查答案</button></div><p class="feedback" id="answer-feedback" aria-live="polite">先动手数数看吧！</p></div></div></section>
+    <section class="challenge-section" id="challenge" aria-labelledby="challenge-title"><div class="wrap challenge-layout"><div class="challenge-copy"><div class="section-kicker">03 / 闯关练习</div><h2 id="challenge-title">轮到你来数！</h2><p>看看上面的方格纸，先数出蓝色方格，再来检查答案。重新生成图形，就有新的挑战。</p><button class="button dark" id="new-question" type="button">换一张图 <span aria-hidden="true">↗</span></button></div><div class="question-card"><div class="question-top"><span>面积挑战</span><span id="question-number">01 / ∞</span></div><div class="question-icon" id="question-icon">■</div><h3 id="question-text">蓝色图形的面积是多少？</h3><div class="answer-row"><label for="answer-input">我的答案</label><div class="input-wrap"><input id="answer-input" type="number" min="0" step="1" placeholder="输入数字" inputmode="numeric"><span>cm²</span></div><button id="check-answer" type="button">检查答案</button></div><p class="feedback" id="answer-feedback" aria-live="polite">先动手数数看吧！</p></div></div></section>
   </main>
   <footer><div class="wrap footer-inner"><div><div class="footer-brand">图形动起来<span>.</span></div><p>动手发现数学，自己看见答案。</p></div><a href="#top">回到顶部 ↑</a></div></footer>
 </body>
