@@ -110,7 +110,9 @@ function updateControl(type) {
   output.textContent = format(dimensions[type]);
   const wrap = input.parentElement;
   output.style.left = `${10 + ratio * Math.max(0, wrap.clientWidth - 20)}px`;
-  bar.style.width = `${dimensions[type] * 10}%`;
+  bar.innerHTML = Array.from({ length: 10 }, (_, index) =>
+    `<span class="ruler-cell ${index < dimensions[type] ? 'active' : 'empty'}" aria-hidden="true"></span>`
+  ).join('');
   bar.setAttribute('aria-label', `把${type === 'length' ? '长' : '宽'} ${format(dimensions[type])} 厘米的蓝条拖入方格`);
 }
 
@@ -126,7 +128,10 @@ for (const type of ['length', 'width']) {
     $('answer-feedback').textContent = '数值变了，再算算新的面积。';
     $('answer-feedback').className = 'feedback';
   });
-  $(`${type}-bar`).addEventListener('pointerdown', event => beginDrag(event, type));
+  $(`${type}-bar`).addEventListener('pointerdown', event => {
+    if (event.target.classList.contains('empty')) return;
+    beginDrag(event, type);
+  });
   $(`${type}-bar`).addEventListener('keydown', event => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
