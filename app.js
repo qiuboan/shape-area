@@ -8,6 +8,12 @@ const sizes = {
 let mode = 'rectangle';
 let dimensions = sizes.rectangle;
 
+function parallelogramSkew() {
+  const height = dimensions.width * GRID.cell;
+  const available = (GRID.count - dimensions.length) * GRID.cell;
+  return Math.min(height * 0.6, available);
+}
+
 function shapeArea() {
   const product = dimensions.length * dimensions.width;
   return mode === 'triangle' ? product / 2 : product;
@@ -38,7 +44,7 @@ function boardBar(type) {
   const { left, top, cell } = GRID;
   const horizontal = type === 'length';
   const value = dimensions[type];
-  const skew = mode === 'parallelogram' ? Math.min(cell, (GRID.count - dimensions.length) * cell) : 0;
+  const skew = mode === 'parallelogram' ? parallelogramSkew() : 0;
   const x = horizontal ? left + skew : left - 5;
   const y = horizontal ? top - 5 : top;
   const width = horizontal ? value * cell : 10;
@@ -60,7 +66,7 @@ function renderBoard() {
   if (mode === 'triangle') {
     svg += `<polygon points="${left},${top} ${left + length * cell},${top} ${left},${top + width * cell}" fill="#90b7ed" stroke="#397bd9" stroke-width="2"/>`;
   } else if (mode === 'parallelogram') {
-    const skew = Math.min(cell, (count - length) * cell);
+    const skew = parallelogramSkew();
     svg += `<polygon points="${left + skew},${top} ${left + skew + length * cell},${top} ${left + length * cell},${top + width * cell} ${left},${top + width * cell}" fill="#90b7ed" stroke="#397bd9" stroke-width="2"/>`;
   } else {
     svg += `<rect x="${left}" y="${top}" width="${length * cell}" height="${width * cell}" fill="#90b7ed"/>`;
