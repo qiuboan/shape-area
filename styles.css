@@ -73,3 +73,44 @@
 .graph-paper svg [data-trapezoid-cut]{cursor:ew-resize}
 .graph-paper svg [data-trapezoid-piece]{cursor:grab}
 .graph-paper svg [data-trapezoid-piece]:active{cursor:grabbing}
+
+/* The opening illustration is the menu; each destination is a separate view. */
+html{scroll-behavior:auto}
+body{min-height:100svh;display:flex;flex-direction:column}
+main{flex:1}
+[data-page][hidden]{display:none!important}
+.hero[data-page="menu"]{min-height:calc(100svh - 174px);padding-top:35px;padding-bottom:48px}
+.menu-links{display:grid;gap:12px;max-width:460px}
+.menu-link{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:14px;min-height:74px;padding:10px 16px;border:1px solid #dce6df;border-radius:14px;background:#fff;box-shadow:0 7px 20px #213f3510;transition:transform .2s,border-color .2s,box-shadow .2s}
+.menu-link:hover{transform:translateY(-2px);border-color:#9bc8bb;box-shadow:0 12px 25px #213f3520}
+.menu-link:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+.menu-link-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:12px;background:#e9f3ee;color:var(--teal);font-size:25px;font-weight:800}
+.menu-link:nth-child(2) .menu-link-icon{background:#e9edfa;color:#6978c2}
+.menu-link:nth-child(3) .menu-link-icon{background:#fff0e2;color:#cc8542}
+.menu-link strong,.menu-link small{display:block}
+.menu-link strong{font-size:16px;line-height:1.4}
+.menu-link small{margin-top:2px;color:#7a8c87;font-size:12px;line-height:1.4}
+.menu-link-arrow{font-size:21px;color:#8ca49c}
+.hero[data-page="menu"] .hero-note{margin-top:24px}
+.site-header nav a[aria-current="page"]{color:var(--teal);font-weight:900}
+.header-cta span:first-child{margin-left:0}
+.ideas-section[data-page="ideas"]{min-height:calc(100svh - 174px)}
+.challenge-section[data-page="challenge"]{min-height:calc(100svh - 174px);display:flex;align-items:center}
+.challenge-section[data-page="challenge"]>.wrap{width:100%}
+@media(max-width:850px){.hero[data-page="menu"]{gap:22px}.hero[data-page="menu"] .hero-art{height:300px}}
+@media(max-width:620px){.hero[data-page="menu"]{padding-top:25px;padding-bottom:36px}.hero[data-page="menu"] h1{font-size:42px;margin:16px 0 12px}.hero[data-page="menu"] .hero-copy>p{margin-bottom:16px}.menu-links{gap:8px}.menu-link{min-height:60px;grid-template-columns:42px 1fr auto;padding:8px 11px;gap:10px}.menu-link-icon{width:42px;height:42px;font-size:22px}.menu-link strong{font-size:14px}.menu-link small{font-size:10px}.hero[data-page="menu"] .hero-note{margin-top:17px}.hero[data-page="menu"] .hero-art{height:220px}}
+
+/* Keep the opening menu inside one viewport, while lesson views can scroll. */
+html[data-page="menu"]{overflow:hidden;overscroll-behavior:none}
+html[data-page="menu"] body{position:fixed;inset:0;width:100%;height:100svh;overflow:hidden;overscroll-behavior:none}
+html[data-page="menu"] footer{display:none}
+html[data-page="menu"] main{min-height:0}
+html[data-page="menu"] .site-header{flex:none;width:100%}
+html[data-page="menu"] .hero{height:100%;min-height:0;padding-top:18px;padding-bottom:18px}
+html[data-page="menu"] .hero-art{max-height:min(440px,calc(100svh - 125px))}
+@media(max-width:850px){html[data-page="menu"] .hero{gap:12px}html[data-page="menu"] .hero-art{height:min(20svh,180px);min-height:80px}}
+@media(max-width:620px){html[data-page="menu"] .hero{padding-top:12px;padding-bottom:12px}html[data-page="menu"] .hero-art{height:min(18svh,150px)}html[data-page="menu"] .hero-note{display:none}}
+@media(max-height:720px) and (min-width:851px){html[data-page="menu"] h1{font-size:clamp(42px,5vw,62px);margin:12px 0}html[data-page="menu"] .hero-copy>p{margin-bottom:14px;line-height:1.6}html[data-page="menu"] .menu-link{min-height:62px}html[data-page="menu"] .menu-links{gap:8px}html[data-page="menu"] .hero-note{margin-top:12px}}
+@media(max-height:720px) and (max-width:850px){html[data-page="menu"] h1{font-size:34px;margin:8px 0}html[data-page="menu"] .hero-copy>p{font-size:12px;line-height:1.4;margin-bottom:8px}html[data-page="menu"] .menu-link{min-height:46px;padding:4px 9px}html[data-page="menu"] .menu-link-icon{width:34px;height:34px;font-size:18px}html[data-page="menu"] .menu-links{gap:5px}html[data-page="menu"] .hero-art{height:12svh;min-height:50px}html[data-page="menu"] .hero-note{display:none}}
+@media(max-height:560px) and (min-width:851px){html[data-page="menu"] h1{font-size:42px}html[data-page="menu"] .hero-copy>p{font-size:12px;margin-bottom:8px}html[data-page="menu"] .menu-link{min-height:48px;padding:4px 10px}html[data-page="menu"] .menu-links{gap:5px}html[data-page="menu"] .hero-note{display:none}}
+@media(max-height:500px) and (max-width:850px){html[data-page="menu"] h1{font-size:28px;margin:5px 0}html[data-page="menu"] .hero-copy>p{display:none}html[data-page="menu"] .menu-link{min-height:40px;padding:2px 8px}html[data-page="menu"] .menu-link-icon{width:30px;height:30px;font-size:16px}html[data-page="menu"] .hero-art{height:10svh;min-height:38px}html[data-page="menu"] .hero{gap:6px}}

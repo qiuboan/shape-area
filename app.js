@@ -584,3 +584,21 @@ updateControl('height');
 renderModeCopy();
 updateHeightLimit();
 renderBoard();
+
+const pages = ['menu', 'explore', 'ideas', 'challenge'];
+function showPage() {
+  const requested = window.location.hash.slice(1);
+  const currentPage = pages.includes(requested) ? requested : 'menu';
+  document.documentElement.dataset.page = currentPage;
+  for (const page of pages) $(page).hidden = page !== currentPage;
+  for (const link of document.querySelectorAll('.site-header nav a')) {
+    if (link.getAttribute('href') === `#${currentPage}`) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  }
+  const headerCta = $('header-cta');
+  headerCta.href = currentPage === 'menu' ? '#explore' : '#menu';
+  $('header-cta-text').textContent = currentPage === 'menu' ? '开始探索' : '返回菜单';
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', showPage);
+showPage();
