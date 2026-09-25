@@ -12,10 +12,30 @@ let mode = 'rectangle';
 let dimensions = sizes.rectangle;
 let puzzle = null;
 let pointerDrag = null;
+let feedbackTimer = null;
 const CUT_TOLERANCE = 10;
 const JOIN_TOLERANCE = 12;
 
+function clearPuzzleFeedback() {
+  if (feedbackTimer !== null) clearTimeout(feedbackTimer);
+  feedbackTimer = null;
+  if (puzzle) puzzle.feedback = null;
+}
+
+function showPuzzleFeedback(kind) {
+  clearPuzzleFeedback();
+  const currentPuzzle = puzzle;
+  puzzle.feedback = kind;
+  feedbackTimer = setTimeout(() => {
+    feedbackTimer = null;
+    if (puzzle !== currentPuzzle) return;
+    puzzle.feedback = null;
+    if (mode === 'parallelogram') renderBoard();
+  }, 2000);
+}
+
 function resetPuzzle() {
+  clearPuzzleFeedback();
   const { left, cell } = GRID;
   const base = dimensions.length * cell;
   const correct = left + parallelogramSkew();
@@ -186,7 +206,7 @@ function movePointerDrag(event) {
     puzzle.pieceDx = Math.max(-40, Math.min(dimensions.length * GRID.cell + 20, pointerDrag.dx + point.x - pointerDrag.x));
     puzzle.pieceDy = Math.max(-30, Math.min(40, pointerDrag.dy + point.y - pointerDrag.y));
   }
-  puzzle.feedback = null;
+  clearPuzzleFeedback();
   renderBoard();
 }
 
@@ -215,7 +235,7 @@ $('shape-canvas').addEventListener('pointerdown', event => {
     dx: puzzle.pieceDx,
     dy: puzzle.pieceDy
   };
-  puzzle.feedback = null;
+  clearPuzzleFeedback();
   document.addEventListener('pointermove', movePointerDrag);
   document.addEventListener('pointerup', finishPointerDrag);
   document.addEventListener('pointercancel', finishPointerDrag);
@@ -228,9 +248,9 @@ $('puzzle-action').addEventListener('click', () => {
     const correctX = GRID.left + parallelogramSkew();
     if (Math.abs(puzzle.cutX - correctX) <= CUT_TOLERANCE) {
       puzzle.phase = 'assemble';
-      puzzle.feedback = null;
+      clearPuzzleFeedback();
     } else {
-      puzzle.feedback = 'cut-wrong';
+      showPuzzleFeedback('cut-wrong');
     }
   } else {
     const targetDx = dimensions.length * GRID.cell;
@@ -238,9 +258,9 @@ $('puzzle-action').addEventListener('click', () => {
       puzzle.phase = 'complete';
       puzzle.pieceDx = targetDx;
       puzzle.pieceDy = 0;
-      puzzle.feedback = 'correct';
+      showPuzzleFeedback('correct');
     } else {
-      puzzle.feedback = 'join-wrong';
+      showPuzzleFeedback('join-wrong');
     }
   }
   renderBoard();
@@ -296,6 +316,7 @@ function renderModeCopy() {
 
 function selectMode(nextMode) {
   if (mode === nextMode) return;
+  clearPuzzleFeedback();
   mode = nextMode;
   dimensions = sizes[mode];
   renderModeCopy();
