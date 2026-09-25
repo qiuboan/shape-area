@@ -1,5 +1,5 @@
 const $ = id => document.getElementById(id);
-const GRID = { left: 60, top: 20, cell: 40, count: 10 };
+const GRID = { left: 60, top: 40, cell: 40, count: 10 };
 const dimensions = { length: 5, width: 5 };
 
 function updateControl(type) {
@@ -37,7 +37,7 @@ function renderBoard() {
   const { left, top, cell, count } = GRID;
   const { length, width } = dimensions;
   const area = length * width;
-  let svg = '<rect x="0" y="0" width="520" height="440" fill="#fff"/>';
+  let svg = '<rect x="0" y="0" width="520" height="460" fill="#fff"/>';
   svg += `<rect x="${left}" y="${top}" width="${length * cell}" height="${width * cell}" fill="#90b7ed"/>`;
   for (let i = 0; i <= count; i++) {
     const coordinate = i * cell;
