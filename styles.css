@@ -62,3 +62,6 @@
 
 .reset-button{flex:none;padding:9px 14px;border-radius:8px;background:linear-gradient(120deg,#4b8bd0,#657baf 55%,#8796ad);color:#fff;box-shadow:0 4px 11px #49688d30;transition:filter .2s,transform .2s}
 .reset-button:hover{text-decoration:none;filter:brightness(1.07);transform:translateY(-1px)}
+.graph-paper svg [data-triangle-copy]{cursor:grab}
+.graph-paper svg [data-triangle-copy]:active{cursor:grabbing}
+.puzzle-action{width:max-content;min-width:146px;max-width:100%}

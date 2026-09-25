@@ -11,26 +11,32 @@ const sizes = {
 let mode = 'rectangle';
 let dimensions = sizes.rectangle;
 let puzzle = null;
+let trianglePuzzle = null;
 let pointerDrag = null;
 let feedbackTimer = null;
 const CUT_TOLERANCE = 10;
 const JOIN_TOLERANCE = 12;
 
+function activePuzzle() {
+  return mode === 'parallelogram' ? puzzle : mode === 'triangle' ? trianglePuzzle : null;
+}
+
 function clearPuzzleFeedback() {
   if (feedbackTimer !== null) clearTimeout(feedbackTimer);
   feedbackTimer = null;
-  if (puzzle) puzzle.feedback = null;
+  const current = activePuzzle();
+  if (current) current.feedback = null;
 }
 
 function showPuzzleFeedback(kind) {
   clearPuzzleFeedback();
-  const currentPuzzle = puzzle;
-  puzzle.feedback = kind;
+  const currentPuzzle = activePuzzle();
+  currentPuzzle.feedback = kind;
   feedbackTimer = setTimeout(() => {
     feedbackTimer = null;
-    if (puzzle !== currentPuzzle) return;
-    puzzle.feedback = null;
-    if (mode === 'parallelogram') renderBoard();
+    if (activePuzzle() !== currentPuzzle) return;
+    currentPuzzle.feedback = null;
+    renderBoard();
   }, 2000);
 }
 
@@ -42,6 +48,14 @@ function resetPuzzle() {
   let cutX = left + (base + parallelogramSkew()) / 2;
   if (Math.abs(cutX - correct) <= CUT_TOLERANCE) cutX = Math.max(left + 4, correct - 14);
   puzzle = { phase: 'cut', cutX, pieceDx: -25, pieceDy: 20, feedback: null };
+}
+
+function resetTrianglePuzzle() {
+  clearPuzzleFeedback();
+  let dx = (GRID.count - dimensions.length) * GRID.cell;
+  let dy = (GRID.count - dimensions.width) * GRID.cell;
+  if (dx === 0 && dy === 0) { dx = 16; dy = 16; }
+  trianglePuzzle = { phase: 'copy', dx, dy, feedback: null };
 }
 
 function parallelogramSkew() {
@@ -119,7 +133,15 @@ function renderBoard() {
   let foreground = '';
   let svg = '<rect x="0" y="0" width="520" height="460" fill="#fff"/>';
   if (mode === 'triangle') {
-    svg += `<polygon points="${left},${top} ${left + length * cell},${top} ${left},${top + width * cell}" fill="#90b7ed" stroke="#397bd9" stroke-width="2"/>`;
+    const right = left + length * cell;
+    const bottom = top + width * cell;
+    svg += `<polygon points="${left},${top} ${right},${top} ${left},${bottom}" fill="#90b7ed" stroke="#397bd9" stroke-width="2"/>`;
+    if (trianglePuzzle.phase !== 'copy') {
+      if (trianglePuzzle.phase !== 'complete') {
+        svg += `<polygon points="${right},${top} ${right},${bottom} ${left},${bottom}" fill="#edf8ff" stroke="#4a9bca" stroke-width="2" stroke-dasharray="7 5"/>`;
+      }
+      foreground = `<g data-triangle-copy="true" transform="translate(${trianglePuzzle.dx} ${trianglePuzzle.dy})"><polygon points="${right},${top} ${right},${bottom} ${left},${bottom}" fill="#c9e4ff" stroke="#5596d6" stroke-width="3"/><polygon points="${right},${top} ${right},${bottom} ${left},${bottom}" fill="transparent" stroke="transparent" stroke-width="14"/></g>`;
+    }
   } else if (mode === 'parallelogram') {
     const skew = parallelogramSkew();
     const cutX = left + skew;
@@ -159,25 +181,37 @@ function renderBoard() {
 function renderPuzzleUI() {
   const button = $('puzzle-action');
   const feedback = $('puzzle-feedback');
-  const interactive = mode === 'parallelogram';
+  const interactive = mode === 'parallelogram' || mode === 'triangle';
   button.hidden = !interactive;
   $('shape-canvas').classList.toggle('interactive', interactive);
   if (!interactive) {
     feedback.hidden = true;
     return;
   }
-  const cutting = puzzle.phase === 'cut';
-  $('puzzle-action-icon').textContent = cutting ? '✂' : '🧩';
-  $('puzzle-action-text').textContent = cutting ? '剪' : '拼';
-  button.disabled = puzzle.phase === 'complete';
-  feedback.hidden = !puzzle.feedback;
-  feedback.textContent = puzzle.feedback === 'correct' ? '✓' : puzzle.feedback ? '✕' : '';
-  feedback.className = `puzzle-feedback ${puzzle.feedback === 'correct' ? 'correct' : 'incorrect'}`;
-  $('motion-note').textContent = puzzle.feedback === 'cut-wrong'
+  const current = activePuzzle();
+  const cutting = mode === 'parallelogram' && current.phase === 'cut';
+  const copying = mode === 'triangle' && current.phase === 'copy';
+  $('puzzle-action-icon').textContent = cutting ? '✂' : copying ? '⧉' : '🧩';
+  $('puzzle-action-text').textContent = cutting ? '剪' : copying ? '复制三角形' : '拼';
+  button.disabled = current.phase === 'complete';
+  feedback.hidden = !current.feedback;
+  feedback.textContent = current.feedback === 'correct' ? '✓' : current.feedback ? '✕' : '';
+  feedback.className = `puzzle-feedback ${current.feedback === 'correct' ? 'correct' : 'incorrect'}`;
+  if (mode === 'triangle') {
+    $('motion-note').textContent = current.feedback === 'join-wrong'
+      ? '拼错了：把淡蓝色三角形拖到虚线缺口，再按“拼”。'
+      : current.phase === 'complete'
+        ? '拼对了！两个一样的三角形组成一个长方形。'
+        : copying
+          ? '按“复制三角形”，在右下角生成一块淡蓝色三角形。'
+          : '拖动淡蓝色三角形到虚线缺口，然后按“拼”。';
+    return;
+  }
+  $('motion-note').textContent = current.feedback === 'cut-wrong'
     ? '剪错了：拖动虚线到左上角顶点的正下方，再按“剪”。'
-    : puzzle.feedback === 'join-wrong'
+    : current.feedback === 'join-wrong'
       ? '拼错了：把剪下的蓝色三角形拖到右侧虚线缺口，再按“拼”。'
-      : puzzle.phase === 'complete'
+      : current.phase === 'complete'
         ? '拼对了！竖切并平移后，图形变成了同底同高的长方形。'
         : cutting
           ? '拖动紫色虚线选择竖切位置，然后按“剪”。'
@@ -202,9 +236,14 @@ function movePointerDrag(event) {
     const min = GRID.left + 4;
     const max = GRID.left + dimensions.length * GRID.cell - 4;
     puzzle.cutX = Math.max(min, Math.min(max, point.x));
-  } else {
+  } else if (pointerDrag.kind === 'piece') {
     puzzle.pieceDx = Math.max(-40, Math.min(dimensions.length * GRID.cell + 20, pointerDrag.dx + point.x - pointerDrag.x));
     puzzle.pieceDy = Math.max(-30, Math.min(40, pointerDrag.dy + point.y - pointerDrag.y));
+  } else {
+    const maxDx = (GRID.count - dimensions.length) * GRID.cell + 16;
+    const maxDy = (GRID.count - dimensions.width) * GRID.cell + 16;
+    trianglePuzzle.dx = Math.max(-20, Math.min(maxDx, pointerDrag.dx + point.x - pointerDrag.x));
+    trianglePuzzle.dy = Math.max(-20, Math.min(maxDy, pointerDrag.dy + point.y - pointerDrag.y));
   }
   clearPuzzleFeedback();
   renderBoard();
@@ -220,20 +259,22 @@ function finishPointerDrag(event) {
 }
 
 $('shape-canvas').addEventListener('pointerdown', event => {
-  if (mode !== 'parallelogram' || puzzle.phase === 'complete') return;
-  const cut = event.target.closest('[data-cut-handle]');
-  const piece = event.target.closest('[data-piece]');
-  if ((puzzle.phase === 'cut' && !cut) || (puzzle.phase === 'assemble' && !piece)) return;
+  const current = activePuzzle();
+  if (!current || current.phase === 'complete') return;
+  const cut = mode === 'parallelogram' && current.phase === 'cut' && event.target.closest('[data-cut-handle]');
+  const piece = mode === 'parallelogram' && current.phase === 'assemble' && event.target.closest('[data-piece]');
+  const triangleCopy = mode === 'triangle' && current.phase === 'assemble' && event.target.closest('[data-triangle-copy]');
+  if (!cut && !piece && !triangleCopy) return;
   const point = svgPointer(event);
   if (!point) return;
   event.preventDefault();
   pointerDrag = {
-    kind: puzzle.phase === 'cut' ? 'cut' : 'piece',
+    kind: cut ? 'cut' : piece ? 'piece' : 'triangle-copy',
     pointerId: event.pointerId,
     x: point.x,
     y: point.y,
-    dx: puzzle.pieceDx,
-    dy: puzzle.pieceDy
+    dx: mode === 'triangle' ? trianglePuzzle.dx : puzzle.pieceDx,
+    dy: mode === 'triangle' ? trianglePuzzle.dy : puzzle.pieceDy
   };
   clearPuzzleFeedback();
   document.addEventListener('pointermove', movePointerDrag);
@@ -243,8 +284,21 @@ $('shape-canvas').addEventListener('pointerdown', event => {
 });
 
 $('puzzle-action').addEventListener('click', () => {
-  if (mode !== 'parallelogram' || !puzzle || puzzle.phase === 'complete') return;
-  if (puzzle.phase === 'cut') {
+  const current = activePuzzle();
+  if (!current || current.phase === 'complete') return;
+  if (mode === 'triangle') {
+    if (current.phase === 'copy') {
+      current.phase = 'assemble';
+      clearPuzzleFeedback();
+    } else if (Math.abs(current.dx) <= JOIN_TOLERANCE && Math.abs(current.dy) <= JOIN_TOLERANCE) {
+      current.phase = 'complete';
+      current.dx = 0;
+      current.dy = 0;
+      showPuzzleFeedback('correct');
+    } else {
+      showPuzzleFeedback('join-wrong');
+    }
+  } else if (puzzle.phase === 'cut') {
     const correctX = GRID.left + parallelogramSkew();
     if (Math.abs(puzzle.cutX - correctX) <= CUT_TOLERANCE) {
       puzzle.phase = 'assemble';
@@ -280,12 +334,12 @@ function renderModeCopy() {
   $('explore-description').textContent = parallelogram
     ? '调整底和高后，沿虚线竖切，再把三角形拼到右侧，亲手验证平行四边形面积。'
     : triangle
-      ? '底和高从 5 cm 开始。拖动紫色圆点改变它们，观察蓝色直角三角形的面积。'
+      ? '调整底和高后，复制一个同样的三角形，拖到缺口拼成长方形。'
       : '长和宽从 5 cm 开始。拖动紫色圆点改变边长，观察蓝色长方形的面积。';
   $('formula-caption').textContent = `${shapeName}面积`;
   document.querySelector('.formula-sidebar').setAttribute('aria-label', `${shapeName}面积与提示`);
   $('shape-insight').textContent = triangle
-    ? '底增加 1 cm，面积增加当前高的一半；高增加 1 cm，面积增加当前底的一半。'
+    ? '复制一个完全相同的三角形，两个三角形恰好拼成长方形，所以三角形面积是底 × 高 ÷ 2。'
     : parallelogram
       ? '沿紫色虚线竖切，把左侧三角形移到右边，可拼成同底同高的长方形，所以面积是底 × 高。'
       : '长增加 1 cm，面积会增加当前宽的格数；宽增加 1 cm，面积会增加当前长的格数。';
@@ -294,7 +348,7 @@ function renderModeCopy() {
   $('dimension-description').textContent = usesBaseHeight
     ? parallelogram
       ? '先调整底和高，再拖动图中的虚线选择竖切位置。高不超过底 × tan a；按“剪”检查，接着拖动三角形并按“拼”。'
-      : `两根数值条各固定 10 格。蓝格分别表示底和高，白格表示剩余长度。拖动紫色圆点，${shapeName}会立即变化。`
+      : '两根数值条各固定 10 格。调整底和高后，按“复制三角形”，再把淡蓝色三角形拖到缺口处按“拼”。'
     : '每根数值条固定 10 格。蓝格表示当前边长，白格表示剩余长度。拖动紫色圆点，方格纸上的图形会立即变化。';
   $('length-label').textContent = usesBaseHeight ? '底' : '长';
   $('width-label').textContent = usesBaseHeight ? '高' : '宽';
@@ -303,7 +357,7 @@ function renderModeCopy() {
   $('length-range').setAttribute('aria-label', `${usesBaseHeight ? '底' : '长'}，1 到 10 厘米`);
   $('width-range').setAttribute('aria-label', `${usesBaseHeight ? '高' : '宽'}，1 到 10 厘米`);
   $('lab-tip-text').textContent = triangle
-    ? '为什么三角形的面积是底乘高的一半？'
+    ? '两个完全一样的三角形拼成长方形后，为什么原三角形面积是它的一半？'
     : parallelogram
       ? '沿紫色虚线竖切后，把左侧三角形移到右侧，为什么面积不变？'
       : '长或宽增加 1 cm，面积会增加多少？';
@@ -322,6 +376,7 @@ function selectMode(nextMode) {
   renderModeCopy();
   updateHeightLimit();
   if (mode === 'parallelogram' && !puzzle) resetPuzzle();
+  if (mode === 'triangle' && !trianglePuzzle) resetTrianglePuzzle();
   updateControl('length');
   updateControl('width');
   renderBoard();
@@ -339,6 +394,7 @@ for (const type of ['length', 'width']) {
     dimensions[type] = Math.max(1, Math.min(Number(event.target.max), Math.round(Number(event.target.value))));
     updateHeightLimit();
     if (mode === 'parallelogram') resetPuzzle();
+    if (mode === 'triangle') resetTrianglePuzzle();
     updateControl('length');
     updateControl('width');
     renderBoard();
@@ -352,6 +408,7 @@ $('reset-board').addEventListener('click', () => {
   dimensions.width = 5;
   updateHeightLimit();
   if (mode === 'parallelogram') resetPuzzle();
+  if (mode === 'triangle') resetTrianglePuzzle();
   updateControl('length');
   updateControl('width');
   renderBoard();
