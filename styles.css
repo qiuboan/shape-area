@@ -35,3 +35,10 @@
   .grid-lab .formula-sidebar{display:block;padding:20px}
   .grid-lab .formula-sidebar .insight{margin-top:18px}
 }
+
+.shape-switch{display:flex;align-items:center;gap:8px}
+.shape-switch-button{border:1px solid #6858ba;border-radius:9px;background:linear-gradient(120deg,#3487df 0%,#695ed2 58%,#8b55bd 100%);color:#fff;padding:10px 16px;font-size:13px;font-weight:800;line-height:1.1;white-space:nowrap;box-shadow:0 3px 8px #4e64b326;opacity:.78;transition:opacity .2s,transform .2s,box-shadow .2s}
+.shape-switch-button.active{opacity:1;box-shadow:0 0 0 3px #dfe8ff,0 6px 12px #4e64b340;transform:translateY(-1px)}
+.shape-switch-button:hover{opacity:1}
+.shape-switch-button:focus-visible{outline:3px solid #2c479f;outline-offset:3px}
+@media(max-width:620px){.shape-switch{gap:6px}.shape-switch-button{padding:9px 10px;font-size:12px}}

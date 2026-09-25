@@ -1,6 +1,23 @@
 const $ = id => document.getElementById(id);
 const GRID = { left: 60, top: 40, cell: 40, count: 10 };
-const dimensions = { length: 5, width: 5 };
+const sizes = {
+  rectangle: { length: 5, width: 5 },
+  triangle: { length: 5, width: 5 }
+};
+let mode = 'rectangle';
+let dimensions = sizes.rectangle;
+
+function shapeArea() {
+  const product = dimensions.length * dimensions.width;
+  return mode === 'triangle' ? product / 2 : product;
+}
+
+function equation() {
+  const { length, width } = dimensions;
+  return mode === 'triangle'
+    ? `${length} × ${width} ÷ 2 = ${shapeArea()} cm²`
+    : `${length} × ${width} = ${shapeArea()} cm²`;
+}
 
 function updateControl(type) {
   const input = $(`${type}-range`);
@@ -36,9 +53,11 @@ function boardBar(type) {
 function renderBoard() {
   const { left, top, cell, count } = GRID;
   const { length, width } = dimensions;
-  const area = length * width;
+  const area = shapeArea();
   let svg = '<rect x="0" y="0" width="520" height="460" fill="#fff"/>';
-  svg += `<rect x="${left}" y="${top}" width="${length * cell}" height="${width * cell}" fill="#90b7ed"/>`;
+  svg += mode === 'triangle'
+    ? `<polygon points="${left},${top} ${left + length * cell},${top} ${left},${top + width * cell}" fill="#90b7ed" stroke="#397bd9" stroke-width="2"/>`
+    : `<rect x="${left}" y="${top}" width="${length * cell}" height="${width * cell}" fill="#90b7ed"/>`;
   for (let i = 0; i <= count; i++) {
     const coordinate = i * cell;
     svg += `<line x1="${left + coordinate}" y1="${top}" x2="${left + coordinate}" y2="${top + count * cell}" stroke="#9aa9a8" stroke-width="${i === 0 || i === count ? 1.8 : 1}"/>`;
@@ -46,12 +65,68 @@ function renderBoard() {
   }
   svg += boardBar('length') + boardBar('width');
   $('shape-canvas').innerHTML = svg;
-  $('shape-canvas').setAttribute('aria-label', `10 乘 10 方格纸中，长 ${length} 厘米、宽 ${width} 厘米的蓝色长方形，面积 ${area} 平方厘米。`);
-  $('motion-note').textContent = `当前长 ${length} cm、宽 ${width} cm。拖动紫色圆点改变图形。`;
+  const shape = mode === 'triangle' ? '直角三角形' : '长方形';
+  const first = mode === 'triangle' ? '底' : '长';
+  const second = mode === 'triangle' ? '高' : '宽';
+  $('shape-canvas').setAttribute('aria-label', `10 乘 10 方格纸中，${first} ${length} 厘米、${second} ${width} 厘米的蓝色${shape}，面积 ${area} 平方厘米。`);
+  $('motion-note').textContent = `当前${first} ${length} cm、${second} ${width} cm。拖动紫色圆点改变图形。`;
   $('total-count').textContent = `${area} cm²`;
-  $('calculation-text').textContent = `${length} × ${width} = ${area} cm²`;
-  $('question-text').textContent = `长 ${length} cm、宽 ${width} cm，面积是多少？`;
+  $('calculation-text').textContent = equation();
+  $('question-text').textContent = `${first} ${length} cm、${second} ${width} cm，面积是多少？`;
 }
+
+function renderModeCopy() {
+  const triangle = mode === 'triangle';
+  for (const shape of ['rectangle', 'triangle']) {
+    const button = $(`${shape}-tab`);
+    const active = mode === shape;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  }
+  $('explore-description').textContent = triangle
+    ? '底和高从 5 cm 开始。拖动紫色圆点改变它们，观察蓝色直角三角形的面积。'
+    : '长和宽从 5 cm 开始。拖动紫色圆点改变边长，观察蓝色长方形的面积。';
+  $('formula-caption').textContent = triangle ? '三角形面积' : '长方形面积';
+  document.querySelector('.formula-sidebar').setAttribute('aria-label', `${triangle ? '三角形' : '长方形'}面积与提示`);
+  $('shape-insight').textContent = triangle
+    ? '底增加 1 cm，面积增加当前高的一半；高增加 1 cm，面积增加当前底的一半。'
+    : '长增加 1 cm，面积会增加当前宽的格数；宽增加 1 cm，面积会增加当前长的格数。';
+  $('dimension-pill').textContent = triangle ? '调整底与高' : '调整长与宽';
+  $('dimension-title').textContent = triangle ? '拖动圆点，改变底和高' : '拖动圆点，改变长和宽';
+  $('dimension-description').textContent = triangle
+    ? '两根数值条各固定 10 格。蓝格分别表示底和高，白格表示剩余长度。拖动紫色圆点，三角形会立即变化。'
+    : '每根数值条固定 10 格。蓝格表示当前边长，白格表示剩余长度。拖动紫色圆点，方格纸上的图形会立即变化。';
+  $('length-label').textContent = triangle ? '底' : '长';
+  $('width-label').textContent = triangle ? '高' : '宽';
+  $('length-direction').textContent = triangle ? '横向底边' : '横向边长';
+  $('width-direction').textContent = triangle ? '纵向高度' : '纵向边长';
+  $('length-range').setAttribute('aria-label', `${triangle ? '底' : '长'}，1 到 10 厘米`);
+  $('width-range').setAttribute('aria-label', `${triangle ? '高' : '宽'}，1 到 10 厘米`);
+  $('lab-tip-text').textContent = triangle
+    ? '为什么三角形的面积是底乘高的一半？'
+    : '长或宽增加 1 cm，面积会增加多少？';
+  $('challenge-description').textContent = triangle
+    ? '调整底和高后，先自己计算三角形面积，再来核对答案。'
+    : '调整长和宽后，先自己计算面积，再来核对答案。';
+  $('question-number').textContent = triangle ? '底 × 高 ÷ 2' : '长 × 宽';
+  $('question-icon').textContent = triangle ? '◢' : '▭';
+}
+
+function selectMode(nextMode) {
+  if (mode === nextMode) return;
+  mode = nextMode;
+  dimensions = sizes[mode];
+  renderModeCopy();
+  updateControl('length');
+  updateControl('width');
+  renderBoard();
+  $('answer-input').value = '';
+  $('answer-feedback').textContent = '先动手算算看吧！';
+  $('answer-feedback').className = 'feedback';
+}
+
+$('rectangle-tab').addEventListener('click', () => selectMode('rectangle'));
+$('triangle-tab').addEventListener('click', () => selectMode('triangle'));
 
 for (const type of ['length', 'width']) {
   $(`${type}-range`).addEventListener('input', event => {
@@ -82,11 +157,11 @@ function checkAnswer() {
     feedback.className = 'feedback incorrect';
     return;
   }
-  const area = dimensions.length * dimensions.width;
+  const area = shapeArea();
   const correct = Number(answer) === area;
   feedback.textContent = correct
-    ? `答对了！${dimensions.length} × ${dimensions.width} = ${area} cm²。`
-    : `再试一次：用 ${dimensions.length} × ${dimensions.width} 计算。`;
+    ? `答对了！${equation()}。`
+    : `再试一次：用 ${mode === 'triangle' ? '底 × 高 ÷ 2' : '长 × 宽'} 计算。`;
   feedback.className = `feedback ${correct ? 'correct' : 'incorrect'}`;
 }
 
@@ -95,4 +170,5 @@ $('answer-input').addEventListener('keydown', event => { if (event.key === 'Ente
 window.addEventListener('resize', () => { updateControl('length'); updateControl('width'); });
 updateControl('length');
 updateControl('width');
+renderModeCopy();
 renderBoard();
