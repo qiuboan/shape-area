@@ -7,7 +7,7 @@
   <meta name="description" content="调整长和宽，把蓝色长度条拖进 100 个方格，直观看见长方形面积。">
   <title>图形动起来 · 面积看得见</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="app.js?v=6" defer></script>
+  <script src="app.js?v=7" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -48,9 +48,9 @@
           </div>
           <aside class="lab-sidebar">
             <div class="sidebar-top"><span class="pill">第一步 · 设置边长</span><span class="lesson-number">范围 1–10 cm</span></div>
-            <h3>先选长和宽，再拖进方格</h3><p class="shape-description">紫色圆点改变数值，每次变化 0.1 cm。按住蓝条拖到方格里；两根都放好后，就能看到长方形。</p>
-            <div class="dimension-control" data-dimension="length"><div class="dimension-heading"><strong>长</strong><span>横向放置</span></div><div class="dimension-ruler"><div class="ruler-bar" id="length-bar" data-drag="length" role="button" tabindex="0" aria-label="把长的蓝条放入方格"></div></div><div class="range-wrap"><output id="length-value" for="length-range">5</output><input id="length-range" type="range" min="1" max="10" step="0.1" value="5" aria-label="长，1 到 10 厘米"><div class="range-ends"><span>1</span><span>10</span></div></div></div>
-            <div class="dimension-control" data-dimension="width"><div class="dimension-heading"><strong>宽</strong><span>竖向放置</span></div><div class="dimension-ruler"><div class="ruler-bar" id="width-bar" data-drag="width" role="button" tabindex="0" aria-label="把宽的蓝条放入方格"></div></div><div class="range-wrap"><output id="width-value" for="width-range">5</output><input id="width-range" type="range" min="1" max="10" step="0.1" value="5" aria-label="宽，1 到 10 厘米"><div class="range-ends"><span>1</span><span>10</span></div></div></div>
+            <h3>先选长和宽，再拖进方格</h3><p class="shape-description">紫色圆点改变整数数值，每次变化 1 cm。按住蓝条拖到方格里；两根都放好后，就能看到长方形。</p>
+            <div class="dimension-control" data-dimension="length"><div class="dimension-heading"><strong>长</strong><span>横向放置</span></div><div class="dimension-ruler"><div class="ruler-bar" id="length-bar" data-drag="length" role="button" tabindex="0" aria-label="把长的蓝条放入方格"></div></div><div class="range-wrap"><output id="length-value" for="length-range">5</output><input id="length-range" type="range" min="1" max="10" step="1" value="5" aria-label="长，1 到 10 厘米"><div class="range-ends"><span>1</span><span>10</span></div></div></div>
+            <div class="dimension-control" data-dimension="width"><div class="dimension-heading"><strong>宽</strong><span>竖向放置</span></div><div class="dimension-ruler"><div class="ruler-bar" id="width-bar" data-drag="width" role="button" tabindex="0" aria-label="把宽的蓝条放入方格"></div></div><div class="range-wrap"><output id="width-value" for="width-range">5</output><input id="width-range" type="range" min="1" max="10" step="1" value="5" aria-label="宽，1 到 10 厘米"><div class="range-ends"><span>1</span><span>10</span></div></div></div>
             <div class="formula-box"><div class="formula-caption">长方形面积 <span>✦</span></div><div class="formula" id="total-count">等待放入长和宽</div><div class="calculation" id="calculation-text">长 × 宽 = 面积</div></div>
             <p class="insight">先放入一根蓝条，另一根会自动对齐它的起点。可再次拖动蓝条调整位置。</p>
           </aside>

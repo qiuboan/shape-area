@@ -116,7 +116,8 @@ function updateControl(type) {
 
 for (const type of ['length', 'width']) {
   $(`${type}-range`).addEventListener('input', event => {
-    dimensions[type] = Number(event.target.value);
+    dimensions[type] = Math.max(1, Math.min(10, Math.round(Number(event.target.value))));
+    event.target.value = dimensions[type];
     if (placed.length || placed.width) {
       origin = clampOrigin(origin.x, origin.y, placed.length, placed.width);
     }
