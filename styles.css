@@ -43,3 +43,19 @@
 .shape-switch-button:focus-visible{outline:3px solid #2c479f;outline-offset:3px}
 @media(max-width:620px){.shape-switch{gap:6px}.shape-switch-button{padding:9px 10px;font-size:12px}}
 @media(max-width:620px){.grid-lab .canvas-head{flex-wrap:wrap;gap:10px}.grid-lab .canvas-head .unit-label{margin-left:auto}}
+
+.graph-paper{position:relative}
+.graph-paper svg.interactive{touch-action:none}
+.graph-paper svg [data-cut-handle]{cursor:ew-resize}
+.graph-paper svg [data-piece]{cursor:grab}
+.graph-paper svg [data-piece]:active{cursor:grabbing}
+.puzzle-action{display:flex;align-items:center;justify-content:center;gap:10px;width:146px;margin:15px auto 0;padding:11px 22px;border:0;border-radius:10px;background:linear-gradient(120deg,#4b8bd0,#657baf 55%,#8796ad);color:#fff;font-size:15px;font-weight:900;box-shadow:0 5px 14px #49688d34}
+.puzzle-action:hover:not(:disabled){filter:brightness(1.07)}
+.puzzle-action:focus-visible{outline:3px solid #365f9f;outline-offset:3px}
+.puzzle-action:disabled{opacity:.62;cursor:default}
+.puzzle-action[hidden],.puzzle-feedback[hidden]{display:none}
+.puzzle-action span:first-child{font-size:21px;line-height:1}
+.puzzle-feedback{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:142px;height:142px;border-radius:50%;background:#ffffffdf;font-size:112px;font-weight:900;line-height:1;pointer-events:none;z-index:2;box-shadow:0 12px 40px #233e3240}
+.puzzle-feedback.correct{color:#1baf65}
+.puzzle-feedback.incorrect{color:#d9434d}
+@media(max-width:620px){.puzzle-feedback{width:112px;height:112px;font-size:88px}.puzzle-action{margin-top:12px}}
