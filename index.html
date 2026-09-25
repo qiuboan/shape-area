@@ -5,29 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f5ef">
   <meta name="description" content="从 5 × 5 长方形开始，调整长和宽，直观看见 100 个方格中的面积变化。">
-  <title>图形动起来 · 面积看得见</title>
-  <link rel="stylesheet" href="styles.css?v=6">
-  <script src="app.js?v=21" defer></script>
+  <title>问茶研究室 · 面积看得见</title>
+  <link rel="stylesheet" href="styles.css?v=26">
+  <script src="site-header.js?v=1" defer></script>
+  <script src="app.js?v=35" defer></script>
 </head>
 <body>
-  <header class="site-header">
-    <a class="brand" href="#menu" aria-label="图形动起来，返回菜单"><span class="brand-icon">◩</span><span>图形动起来<span class="brand-dot">.</span></span></a>
-    <nav aria-label="主导航"><a href="#menu">首页菜单</a><a href="#explore">动手探索</a><a href="#ideas">运动方法</a><a href="#challenge">闯关练习</a></nav>
-    <a class="header-cta" id="header-cta" href="#explore"><span id="header-cta-text">开始探索</span><span aria-hidden="true">↗</span></a>
-  </header>
+  <site-header></site-header>
 
   <main id="top">
     <section class="hero wrap" id="menu" aria-labelledby="hero-title" data-page="menu">
       <div class="hero-copy">
-        <div class="eyebrow"><span class="eyebrow-line"></span> 五年级数学 · 图形的运动与面积</div>
         <h1 id="hero-title">让图形<span class="highlight">动起来</span><br>让面积<span class="highlight highlight-teal">看得见</span></h1>
-        <p>选一个入口，开始探索图形的运动与面积。</p>
         <div class="menu-links" aria-label="选择学习内容">
           <a class="menu-link" href="#explore"><span class="menu-link-icon" aria-hidden="true">▦</span><span><strong>动手探索</strong><small>拖动、剪拼，发现面积公式</small></span><span class="menu-link-arrow" aria-hidden="true">↗</span></a>
           <a class="menu-link" href="#ideas"><span class="menu-link-icon" aria-hidden="true">↻</span><span><strong>运动方法</strong><small>认识平移、旋转与轴对称</small></span><span class="menu-link-arrow" aria-hidden="true">↗</span></a>
           <a class="menu-link" href="#challenge"><span class="menu-link-icon" aria-hidden="true">✎</span><span><strong>闯关练习</strong><small>自己计算，核对面积答案</small></span><span class="menu-link-arrow" aria-hidden="true">↗</span></a>
         </div>
-        <div class="hero-note"><span class="sparkle">✦</span> 数学不是背公式，是看见它怎么来的。</div>
       </div>
       <div class="hero-art" aria-label="由方格、三角形和平行四边形组成的数学插画" role="img">
         <div class="hero-grid"></div>
@@ -43,41 +37,39 @@
 
     <section class="explore-section" id="explore" aria-labelledby="explore-title" data-page="explore">
       <div class="wrap">
-        <div class="section-heading"><div><div class="section-kicker">01 / 动手探索</div><h2 id="explore-title">在方格纸上发现面积</h2><p id="explore-description">长和宽从 5 cm 开始。拖动紫色圆点改变边长，观察蓝色长方形的面积。</p></div><div class="scribble" aria-hidden="true">↘</div></div>
+        <h2 id="explore-title" class="sr-only">动手探索</h2>
         <div class="lab-card grid-lab">
-          <aside class="formula-sidebar" aria-label="长方形面积与提示">
+          <aside class="formula-sidebar" aria-labelledby="formula-title">
+            <h3 class="formula-panel-title" id="formula-title">计算台</h3>
             <div class="formula-box"><div class="formula-caption"><span id="formula-caption">长方形面积</span><span>✦</span></div><div class="formula" id="total-count">25 cm²</div><div class="calculation" id="calculation-text">5 × 5 = 25 cm²</div></div>
-            <p class="insight" id="shape-insight">长增加 1 cm，面积会增加当前宽的格数；宽增加 1 cm，面积会增加当前长的格数。</p>
           </aside>
           <div class="lab-main">
-            <div class="canvas-head"><div class="shape-switch" role="group" aria-label="选择图形"><button id="rectangle-tab" class="shape-switch-button active" type="button" aria-pressed="true">长方形</button><button id="parallelogram-tab" class="shape-switch-button" type="button" aria-pressed="false">平行四边形</button><button id="triangle-tab" class="shape-switch-button" type="button" aria-pressed="false">三角形</button><button id="trapezoid-tab" class="shape-switch-button" type="button" aria-pressed="false">等腰梯形</button></div><span class="unit-label">每格边长 1 cm</span></div>
+            <div class="canvas-head"><div class="shape-switch" role="group" aria-label="选择图形"><button id="rectangle-tab" class="shape-switch-button active" type="button" aria-pressed="true">长方形</button><button id="parallelogram-tab" class="shape-switch-button" type="button" aria-pressed="false">平行四边形</button><button id="triangle-tab" class="shape-switch-button" type="button" aria-pressed="false">三角形</button><button id="trapezoid-tab" class="shape-switch-button" type="button" aria-pressed="false">等腰梯形</button></div></div>
             <div class="canvas-wrap graph-paper"><svg id="shape-canvas" viewBox="0 0 520 460" role="img" aria-label="10 乘 10 方格纸中，长和宽都是 5 厘米的蓝色长方形"></svg><div id="puzzle-feedback" class="puzzle-feedback" aria-live="assertive" hidden></div></div>
             <button id="puzzle-action" class="puzzle-action" type="button" hidden><span id="puzzle-action-icon" aria-hidden="true">✂</span><span id="puzzle-action-text">剪</span></button>
             <div class="canvas-footer"><span id="motion-note" role="status" aria-live="polite">当前长 5 cm、宽 5 cm。拖动紫色圆点改变图形。</span><button id="reset-board" class="reset-button" type="button">恢复原状</button></div>
           </div>
-          <aside class="lab-sidebar">
-            <div class="sidebar-top"><span class="pill" id="dimension-pill">调整长与宽</span><span class="lesson-number" id="dimension-range">范围 1–10 cm</span></div>
-            <h3 id="dimension-title">拖动圆点，改变长和宽</h3><p class="shape-description" id="dimension-description">每根数值条固定 10 格。蓝格表示当前边长，白格表示剩余长度。拖动紫色圆点，方格纸上的图形会立即变化。</p>
+          <aside class="lab-sidebar" aria-labelledby="dimension-title">
+            <div class="sidebar-heading"><h3 id="dimension-title">控制台</h3><span class="pill" id="dimension-pill">长方形</span></div>
             <div class="dimension-control" data-dimension="length"><div class="dimension-heading"><strong id="length-label">长</strong><span id="length-direction">横向边长</span></div><div class="dimension-ruler"><div class="ruler-bar" id="length-bar" aria-hidden="true"></div></div><div class="range-wrap"><output id="length-value" for="length-range">5</output><input id="length-range" type="range" min="1" max="10" step="1" value="5" aria-label="长，1 到 10 厘米"><div class="range-ends"><span>1</span><span id="length-max-label">10</span></div></div></div>
             <div class="dimension-control" data-dimension="width"><div class="dimension-heading"><strong id="width-label">宽</strong><span id="width-direction">纵向边长</span></div><div class="dimension-ruler"><div class="ruler-bar" id="width-bar" aria-hidden="true"></div></div><div class="range-wrap"><output id="width-value" for="width-range">5</output><input id="width-range" type="range" min="1" max="10" step="1" value="5" aria-label="宽，1 到 10 厘米"><div class="range-ends"><span id="width-min-label">1</span><span id="width-max-label">10</span></div></div></div>
             <div class="dimension-control" id="height-control" data-dimension="height" hidden><div class="dimension-heading"><strong id="height-label">高</strong><span>两底间的距离</span></div><div class="dimension-ruler"><div class="ruler-bar" id="height-bar" aria-hidden="true"></div></div><div class="range-wrap"><output id="height-value" for="height-range">5</output><input id="height-range" type="range" min="1" max="10" step="1" value="5" aria-label="高，1 到 10 厘米"><div class="range-ends"><span>1</span><span>10</span></div></div></div>
           </aside>
         </div>
-        <div class="lab-tip"><span>💡</span> <strong>想一想：</strong><span id="lab-tip-text">长或宽增加 1 cm，面积会增加多少？</span></div>
       </div>
     </section>
 
     <section class="ideas-section wrap" id="ideas" aria-labelledby="ideas-title" data-page="ideas">
-      <div class="section-heading"><div><div class="section-kicker">02 / 运动方法</div><h2 id="ideas-title">图形运动的三个小魔法</h2><p>图形可以换位置、转方向，也能沿一条线翻过去。</p></div></div>
+      <div class="section-heading"><div><div class="section-kicker">02 / 运动方法</div><h2 id="ideas-title">图形运动的三个小技巧</h2></div></div>
       <div class="idea-grid">
-        <article class="idea-card"><div class="idea-visual move-visual"><span class="ghost-square"></span><span class="solid-square"></span><span class="idea-arrow">⟶</span></div><span class="idea-num">01</span><h3>平移</h3><p>沿着一个方向移动。形状、大小和面积都不变。</p><span class="idea-example">想象蓝色图形在方格纸上移动 ↗</span></article>
-        <article class="idea-card"><div class="idea-visual rotate-visual"><span class="ghost-triangle"></span><span class="solid-triangle"></span><span class="rotate-mark">↻</span></div><span class="idea-num">02</span><h3>旋转</h3><p>绕着一个点转动。转过之后，面积还是一样大。</p><span class="idea-example">想象蓝色图形转个方向 ↗</span></article>
-        <article class="idea-card"><div class="idea-visual mirror-visual"><span class="mirror-line"></span><span class="mirror-left">◢</span><span class="mirror-right">◣</span></div><span class="idea-num">03</span><h3>轴对称</h3><p>沿对称轴翻折，两边的图形能够完全重合。</p><span class="idea-example">在方格纸上找一找对称轴 ↗</span></article>
+        <article class="idea-card"><div class="idea-visual move-visual"><span class="ghost-square"></span><span class="solid-square"></span><span class="idea-arrow">⟶</span></div><span class="idea-num">01</span><h3>平移</h3><p>沿着一个方向移动。形状、大小和面积都不变。</p></article>
+        <article class="idea-card"><div class="idea-visual rotate-visual"><span class="ghost-triangle"></span><span class="solid-triangle"></span><span class="rotate-mark">↻</span></div><span class="idea-num">02</span><h3>旋转</h3><p>绕着一个点转动。转过之后，面积还是一样大。</p></article>
+        <article class="idea-card"><div class="idea-visual mirror-visual"><span class="mirror-line"></span><span class="mirror-left">◢</span><span class="mirror-right">◣</span></div><span class="idea-num">03</span><h3>轴对称</h3><p>沿对称轴翻折，两边的图形能够完全重合。</p></article>
       </div>
     </section>
 
-    <section class="challenge-section" id="challenge" aria-labelledby="challenge-title" data-page="challenge"><div class="wrap challenge-layout"><div class="challenge-copy"><div class="section-kicker">03 / 动手练习</div><h2 id="challenge-title">轮到你来算！</h2><p id="challenge-description">调整长和宽后，先自己计算面积，再来核对答案。</p><a class="button dark" href="#explore">回到方格纸 <span aria-hidden="true">↗</span></a></div><div class="question-card"><div class="question-top"><span>面积挑战</span><span id="question-number">长 × 宽</span></div><div class="question-icon" id="question-icon">▭</div><h3 id="question-text">长 5 cm、宽 5 cm，面积是多少？</h3><div class="answer-row"><label for="answer-input">我的答案</label><div class="input-wrap"><input id="answer-input" type="number" min="0" step="0.5" placeholder="输入数字" inputmode="decimal"><span>cm²</span></div><button id="check-answer" type="button">检查答案</button></div><p class="feedback" id="answer-feedback" aria-live="polite">先动手算算看吧！</p></div></div></section>
+    <section class="challenge-section" id="challenge" aria-labelledby="challenge-title" data-page="challenge"><div class="wrap challenge-layout"><h2 class="sr-only" id="challenge-title">面积挑战</h2><div class="question-card"><div class="question-icon" id="question-icon"></div><h3 id="question-text" aria-live="polite">长 5 cm、宽 5 cm，面积是多少？</h3><div class="answer-row"><label for="answer-input">我的答案</label><div class="input-wrap"><input id="answer-input" type="number" min="0" step="0.5" placeholder="输入数字" inputmode="decimal"><div class="answer-suffix"><div class="answer-stepper"><button id="answer-increase" type="button" aria-label="答案增加 0.5">▲</button><button id="answer-decrease" type="button" aria-label="答案减少 0.5">▼</button></div><span>cm²</span></div></div><button id="check-answer" type="button">检查答案</button></div><p class="feedback" id="answer-feedback" aria-live="polite" hidden></p></div><button id="next-question" class="next-question-button" type="button">再来一题 <span aria-hidden="true">↻</span></button></div></section>
   </main>
-  <footer><div class="wrap footer-inner"><div><div class="footer-brand">图形动起来<span>.</span></div><p>动手发现数学，自己看见答案。</p></div><a href="#menu">返回菜单 ↑</a></div></footer>
+  <footer><div class="wrap footer-inner"><div><div class="footer-brand">问茶研究室</div><p>动手发现数学，自己看见答案。</p></div><a href="#menu">返回菜单 ↑</a></div></footer>
 </body>
 </html>

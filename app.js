@@ -9,6 +9,20 @@ const sizes = {
   triangle: { length: 5, width: 5 },
   trapezoid: { length: 4, width: 6, height: 5 }
 };
+const questionOrder = ['rectangle', 'parallelogram', 'triangle', 'trapezoid'];
+const QUESTION_STORAGE_KEY = 'shape-area-used-questions-v1';
+function loadUsedQuestions() {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(QUESTION_STORAGE_KEY) || '[]');
+    return new Set(Array.isArray(saved) ? saved.filter(key => typeof key === 'string') : []);
+  } catch {
+    return new Set();
+  }
+}
+const usedQuestions = loadUsedQuestions();
+let questionMax = 20;
+let questionIndex = 0;
+let challenge = { shape: 'rectangle', values: { length: 5, width: 5 } };
 let mode = 'rectangle';
 let dimensions = sizes.rectangle;
 let puzzle = null;
@@ -110,7 +124,6 @@ function updateHeightLimit() {
   dimensions.width = Math.max(lowerMin, Math.min(dimensions.width, max));
   $('width-range').max = max;
   $('width-max-label').textContent = max;
-  $('dimension-range').textContent = mode === 'parallelogram' ? `底 1–9 · 高 1–${max} cm` : mode === 'trapezoid' ? `上底 1–9 · 下底 ${lowerMin}–10 · 高 1–10 cm` : '范围 1–10 cm';
   $('length-range').setAttribute('aria-label', mode === 'parallelogram' ? '底，1 到 9 厘米' : mode === 'trapezoid' ? '上底，1 到 9 厘米' : `${mode === 'triangle' ? '底' : '长'}，1 到 10 厘米`);
   $('width-range').setAttribute('aria-label', mode === 'parallelogram'
     ? `高，1 到 ${max} 厘米，不超过底乘夹角的正切值`
@@ -118,19 +131,19 @@ function updateHeightLimit() {
   $('height-range').setAttribute('aria-label', '高，1 到 10 厘米');
 }
 
-function shapeArea() {
-  if (mode === 'trapezoid') return (dimensions.length + dimensions.width) * dimensions.height / 2;
-  const product = dimensions.length * dimensions.width;
-  return mode === 'triangle' ? product / 2 : product;
+function shapeArea(shape = mode, values = dimensions) {
+  if (shape === 'trapezoid') return (values.length + values.width) * values.height / 2;
+  const product = values.length * values.width;
+  return shape === 'triangle' ? product / 2 : product;
 }
 
-function equation() {
-  const { length, width } = dimensions;
-  return mode === 'trapezoid'
-    ? `(${length} + ${width}) × ${dimensions.height} ÷ 2 = ${shapeArea()} cm²`
-    : mode === 'triangle'
-    ? `${length} × ${width} ÷ 2 = ${shapeArea()} cm²`
-    : `${length} × ${width} = ${shapeArea()} cm²`;
+function equation(shape = mode, values = dimensions) {
+  const { length, width } = values;
+  return shape === 'trapezoid'
+    ? `(${length} + ${width}) × ${values.height} ÷ 2 = ${shapeArea(shape, values)} cm²`
+    : shape === 'triangle'
+    ? `${length} × ${width} ÷ 2 = ${shapeArea(shape, values)} cm²`
+    : `${length} × ${width} = ${shapeArea(shape, values)} cm²`;
 }
 
 function updateControl(type) {
@@ -244,9 +257,6 @@ function renderBoard() {
     : `当前${first} ${length} cm、${second} ${width} cm。拖动紫色圆点改变图形。`;
   $('total-count').textContent = `${area} cm²`;
   $('calculation-text').textContent = equation();
-  $('question-text').textContent = mode === 'trapezoid'
-    ? `上底 ${length} cm、下底 ${width} cm、高 ${dimensions.height} cm，面积是多少？`
-    : `${first} ${length} cm、${second} ${width} cm，面积是多少？`;
   renderPuzzleUI();
 }
 
@@ -455,51 +465,98 @@ function renderModeCopy() {
     button.classList.toggle('active', active);
     button.setAttribute('aria-pressed', String(active));
   }
-  $('explore-description').textContent = parallelogram
-    ? '调整底和高后，沿左侧或右侧虚线竖切，再把三角形拼到另一侧，亲手验证平行四边形面积。'
-    : triangle
-      ? '调整底和高后，复制一个同样的三角形，拖到缺口拼成长方形。'
-      : trapezoid
-        ? '调整上底、下底和高后，从左侧或右侧竖切，再把三角形拼到另一侧，观察等腰梯形如何变成长方形。'
-      : '长和宽从 5 cm 开始。拖动紫色圆点改变边长，观察蓝色长方形的面积。';
   $('formula-caption').textContent = `${shapeName}面积`;
-  document.querySelector('.formula-sidebar').setAttribute('aria-label', `${shapeName}面积与提示`);
-  $('shape-insight').textContent = triangle
-    ? '复制一个完全相同的三角形，两个三角形恰好拼成长方形，所以三角形面积是底 × 高 ÷ 2。'
-    : parallelogram
-      ? '沿左侧或右侧竖切，把剪下的三角形移到另一侧，可拼成同底同高的长方形，所以面积是底 × 高。'
-      : trapezoid
-        ? '沿等腰梯形左侧或右侧竖切，把剪下的三角形翻转后拼到另一侧，可拼成同高的长方形。长方形的宽是（上底＋下底）÷2。'
-      : '长增加 1 cm，面积会增加当前宽的格数；宽增加 1 cm，面积会增加当前长的格数。';
-  $('dimension-pill').textContent = trapezoid ? '调整上底、下底与高' : usesBaseHeight ? '调整底与高' : '调整长与宽';
-  $('dimension-title').textContent = trapezoid ? '拖动圆点，改变上底、下底和高' : usesBaseHeight ? '拖动圆点，改变底和高' : '拖动圆点，改变长和宽';
-  $('dimension-description').textContent = trapezoid
-    ? '三根数值条各固定 10 格。调整上底、下底和高后，拖动紫色虚线到上底左端点或右端点，按“剪”；再把三角形拖到另一侧缺口，按“拼”。'
-    : usesBaseHeight
-    ? parallelogram
-      ? '先调整底和高，再拖动图中的虚线到左侧或右侧的正确竖切位置。高不超过底 × tan a；按“剪”检查，接着拖动三角形并按“拼”。'
-      : '两根数值条各固定 10 格。调整底和高后，按“复制三角形”，再把淡蓝色三角形拖到缺口处按“拼”。'
-    : '每根数值条固定 10 格。蓝格表示当前边长，白格表示剩余长度。拖动紫色圆点，方格纸上的图形会立即变化。';
+  $('dimension-pill').textContent = shapeName;
   $('length-label').textContent = trapezoid ? '上底' : usesBaseHeight ? '底' : '长';
   $('width-label').textContent = trapezoid ? '下底' : usesBaseHeight ? '高' : '宽';
   $('length-direction').textContent = trapezoid ? '上方横边' : usesBaseHeight ? '横向底边' : '横向边长';
   $('width-direction').textContent = trapezoid ? '下方横边' : usesBaseHeight ? '纵向高度' : '纵向边长';
   $('height-control').hidden = !trapezoid;
   $('height-label').textContent = '高';
-  $('lab-tip-text').textContent = triangle
-    ? '两个完全一样的三角形拼成长方形后，为什么原三角形面积是它的一半？'
-    : parallelogram
-      ? '沿紫色虚线竖切后，把一侧三角形移到另一侧，为什么面积不变？'
-      : trapezoid
-        ? '剪下的三角形翻转并移到另一侧后，为什么长方形的宽是两底之和的一半？'
-      : '长或宽增加 1 cm，面积会增加多少？';
-  $('challenge-description').textContent = trapezoid
-    ? '调整上底、下底和高后，先自己计算等腰梯形面积，再来核对答案。'
-    : usesBaseHeight
-    ? `调整底和高后，先自己计算${shapeName}面积，再来核对答案。`
-    : '调整长和宽后，先自己计算面积，再来核对答案。';
-  $('question-number').textContent = triangle ? '底 × 高 ÷ 2' : parallelogram ? '底 × 高' : trapezoid ? '（上底＋下底）× 高 ÷ 2' : '长 × 宽';
-  $('question-icon').textContent = triangle ? '◢' : parallelogram ? '▱' : trapezoid ? '⏢' : '▭';
+}
+
+function randomInt(min, max) {
+  return min + Math.floor(Math.random() * (max - min + 1));
+}
+
+function nextQuestionValues(shape, limit = questionMax) {
+  if (shape === 'parallelogram') {
+    const length = randomInt(1, limit);
+    return { length, width: randomInt(1, Math.min(limit, Math.floor(length * PARALLELOGRAM_TAN_ANGLE))) };
+  }
+  if (shape === 'trapezoid') {
+    const length = randomInt(1, limit - 1);
+    return { length, width: randomInt(length + 1, limit), height: randomInt(1, limit) };
+  }
+  return { length: randomInt(1, limit), width: randomInt(1, limit) };
+}
+
+function questionKey(shape, values) {
+  return `${shape}:${values.length}:${values.width}:${values.height ?? ''}`;
+}
+
+function uniqueQuestionValues(shape, preferred) {
+  if (preferred && !usedQuestions.has(questionKey(shape, preferred))) {
+    usedQuestions.add(questionKey(shape, preferred));
+    try { window.localStorage.setItem(QUESTION_STORAGE_KEY, JSON.stringify([...usedQuestions])); } catch {}
+    return preferred;
+  }
+  let values;
+  for (let attempt = 0; attempt < 80; attempt++) {
+    values = nextQuestionValues(shape);
+    if (!usedQuestions.has(questionKey(shape, values))) break;
+    values = null;
+  }
+  if (!values) {
+    do {
+      questionMax++;
+      values = shape === 'trapezoid'
+        ? { length: questionMax - 1, width: questionMax, height: 1 }
+        : { length: questionMax, width: 1 };
+    } while (usedQuestions.has(questionKey(shape, values)));
+  }
+  usedQuestions.add(questionKey(shape, values));
+  try { window.localStorage.setItem(QUESTION_STORAGE_KEY, JSON.stringify([...usedQuestions])); } catch {}
+  return values;
+}
+
+function questionDiagram(shape, values) {
+  let figure;
+  if (shape === 'trapezoid') {
+    const topWidth = Math.max(20, 270 * values.length / values.width);
+    const topLeft = (300 - topWidth) / 2;
+    const topRight = (300 + topWidth) / 2;
+    figure = `<polygon points="${topLeft},8 ${topRight},8 285,152 15,152" fill="none" stroke="currentColor" stroke-width="9" stroke-linejoin="round"/>`;
+  } else if (shape === 'triangle') {
+    figure = '<polygon points="15,152 285,152 285,8" fill="currentColor"/>';
+  } else if (shape === 'parallelogram') {
+    figure = '<polygon points="55,8 285,8 245,152 15,152" fill="none" stroke="currentColor" stroke-width="9" stroke-linejoin="round"/>';
+  } else {
+    figure = '<rect x="15" y="8" width="270" height="144" fill="none" stroke="currentColor" stroke-width="9"/>';
+  }
+  return `<svg viewBox="0 0 300 160" aria-hidden="true" focusable="false">${figure}</svg>`;
+}
+
+function renderChallenge() {
+  const { shape, values } = challenge;
+  const { length, width } = values;
+  $('question-icon').innerHTML = questionDiagram(shape, values);
+  $('question-text').textContent = shape === 'trapezoid'
+    ? `上底 ${length} cm、下底 ${width} cm、高 ${values.height} cm，面积是多少？`
+    : shape === 'rectangle'
+      ? `长 ${length} cm、宽 ${width} cm，面积是多少？`
+      : `底 ${length} cm、高 ${width} cm，面积是多少？`;
+  $('answer-input').value = '';
+  $('answer-feedback').textContent = '';
+  $('answer-feedback').className = 'feedback';
+  $('answer-feedback').hidden = true;
+}
+
+function nextQuestion() {
+  questionIndex = (questionIndex + 1) % questionOrder.length;
+  const shape = questionOrder[questionIndex];
+  challenge = { shape, values: uniqueQuestionValues(shape) };
+  renderChallenge();
 }
 
 function selectMode(nextMode) {
@@ -516,9 +573,6 @@ function selectMode(nextMode) {
   updateControl('width');
   updateControl('height');
   renderBoard();
-  $('answer-input').value = '';
-  $('answer-feedback').textContent = '先动手算算看吧！';
-  $('answer-feedback').className = 'feedback';
 }
 
 $('rectangle-tab').addEventListener('click', () => selectMode('rectangle'));
@@ -537,8 +591,6 @@ for (const type of ['length', 'width', 'height']) {
     updateControl('width');
     updateControl('height');
     renderBoard();
-    $('answer-feedback').textContent = '数值变了，再算算新的面积。';
-    $('answer-feedback').className = 'feedback';
   });
 }
 
@@ -554,29 +606,31 @@ $('reset-board').addEventListener('click', () => {
   updateControl('width');
   updateControl('height');
   renderBoard();
-  $('answer-input').value = '';
-  $('answer-feedback').textContent = '先动手算算看吧！';
-  $('answer-feedback').className = 'feedback';
 });
 
 function checkAnswer() {
   const feedback = $('answer-feedback');
+  feedback.hidden = false;
   const answer = $('answer-input').value.trim();
   if (!answer) {
     feedback.textContent = '先输入你的答案。';
     feedback.className = 'feedback incorrect';
     return;
   }
-  const area = shapeArea();
+  const { shape, values } = challenge;
+  const area = shapeArea(shape, values);
   const correct = Number(answer) === area;
   feedback.textContent = correct
-    ? `答对了！${equation()}。`
-    : `再试一次：用 ${mode === 'triangle' ? '底 × 高 ÷ 2' : mode === 'parallelogram' ? '底 × 高' : mode === 'trapezoid' ? '（上底＋下底）× 高 ÷ 2' : '长 × 宽'} 计算。`;
+    ? `答对了！${equation(shape, values)}。`
+    : `再试一次：用 ${shape === 'triangle' ? '底 × 高 ÷ 2' : shape === 'parallelogram' ? '底 × 高' : shape === 'trapezoid' ? '（上底＋下底）× 高 ÷ 2' : '长 × 宽'} 计算。`;
   feedback.className = `feedback ${correct ? 'correct' : 'incorrect'}`;
 }
 
 $('check-answer').addEventListener('click', checkAnswer);
+$('next-question').addEventListener('click', nextQuestion);
 $('answer-input').addEventListener('keydown', event => { if (event.key === 'Enter') checkAnswer(); });
+$('answer-increase').addEventListener('click', () => { $('answer-input').stepUp(); $('answer-input').focus(); });
+$('answer-decrease').addEventListener('click', () => { $('answer-input').stepDown(); $('answer-input').focus(); });
 window.addEventListener('resize', () => { updateControl('length'); updateControl('width'); updateControl('height'); });
 updateControl('length');
 updateControl('width');
@@ -584,6 +638,8 @@ updateControl('height');
 renderModeCopy();
 updateHeightLimit();
 renderBoard();
+challenge.values = uniqueQuestionValues('rectangle', challenge.values);
+renderChallenge();
 
 const pages = ['menu', 'explore', 'ideas', 'challenge'];
 function showPage() {
@@ -591,13 +647,7 @@ function showPage() {
   const currentPage = pages.includes(requested) ? requested : 'menu';
   document.documentElement.dataset.page = currentPage;
   for (const page of pages) $(page).hidden = page !== currentPage;
-  for (const link of document.querySelectorAll('.site-header nav a')) {
-    if (link.getAttribute('href') === `#${currentPage}`) link.setAttribute('aria-current', 'page');
-    else link.removeAttribute('aria-current');
-  }
-  const headerCta = $('header-cta');
-  headerCta.href = currentPage === 'menu' ? '#explore' : '#menu';
-  $('header-cta-text').textContent = currentPage === 'menu' ? '开始探索' : '返回菜单';
+  document.querySelector('site-header').setActivePage(currentPage);
   window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', showPage);

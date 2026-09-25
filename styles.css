@@ -11,17 +11,19 @@
 
 /* 面积卡片位于方格纸左侧，长宽控制位于右侧。 */
 .grid-lab{grid-template-columns:250px minmax(0,1fr) 320px}
-.grid-lab .formula-sidebar{min-width:0;padding:60px 18px 24px;border-right:1px solid #e5ebe6}
+.grid-lab .formula-sidebar{min-width:0;padding:29px 18px 24px;border-right:1px solid #e5ebe6}
+.grid-lab .formula-panel-title{margin:0 0 18px;font-size:25px;font-weight:900;letter-spacing:-.05em}
 .grid-lab .formula-sidebar .formula-box{margin:0}
-.grid-lab .formula-sidebar .insight{margin-top:20px}
 .grid-lab .lab-main{padding:27px 14px 17px}
 .grid-lab .lab-sidebar{padding:29px 20px 25px}
+.grid-lab .sidebar-heading{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.grid-lab .sidebar-heading h3{margin:0}
+.idea-card p{margin-bottom:0}
 @media(max-width:1080px){
   .grid-lab{grid-template-columns:minmax(0,1fr) 300px}
   .grid-lab .lab-main{grid-column:1;grid-row:1}
-  .grid-lab .formula-sidebar{grid-column:1;grid-row:2;display:flex;gap:16px;align-items:flex-start;padding:20px}
-  .grid-lab .formula-sidebar .formula-box,.grid-lab .formula-sidebar .insight{flex:1;min-width:0}
-  .grid-lab .formula-sidebar .insight{margin:0}
+  .grid-lab .formula-sidebar{grid-column:1;grid-row:2;padding:20px}
+  .grid-lab .formula-panel-title{margin-bottom:18px}
   .grid-lab .lab-sidebar{grid-column:2;grid-row:1 / span 2}
 }
 @media(max-width:850px){
@@ -32,8 +34,7 @@
 }
 @media(max-width:620px){
   .grid-lab .lab-main{padding:18px 15px}
-  .grid-lab .formula-sidebar{display:block;padding:20px}
-  .grid-lab .formula-sidebar .insight{margin-top:18px}
+  .grid-lab .formula-sidebar{padding:20px}
 }
 
 .shape-switch{display:flex;align-items:center;gap:8px}
@@ -42,7 +43,7 @@
 .shape-switch-button:hover{opacity:1}
 .shape-switch-button:focus-visible{outline:3px solid #2c479f;outline-offset:3px}
 @media(max-width:620px){.shape-switch{gap:6px}.shape-switch-button{padding:9px 10px;font-size:12px}}
-@media(max-width:620px){.grid-lab .canvas-head{flex-wrap:wrap;gap:10px}.grid-lab .canvas-head .unit-label{margin-left:auto}}
+@media(max-width:620px){.grid-lab .canvas-head{flex-wrap:wrap;gap:10px}}
 
 .graph-paper{position:relative}
 .graph-paper svg.interactive{touch-action:none}
@@ -68,7 +69,6 @@
 
 .shape-switch{flex-wrap:wrap;min-width:0}
 .grid-lab .canvas-head{flex-wrap:wrap;gap:10px}
-.grid-lab .canvas-head .unit-label{margin-left:auto}
 .dimension-control[hidden]{display:none}
 .graph-paper svg [data-trapezoid-cut]{cursor:ew-resize}
 .graph-paper svg [data-trapezoid-piece]{cursor:grab}
@@ -114,3 +114,38 @@ html[data-page="menu"] .hero-art{max-height:min(440px,calc(100svh - 125px))}
 @media(max-height:720px) and (max-width:850px){html[data-page="menu"] h1{font-size:34px;margin:8px 0}html[data-page="menu"] .hero-copy>p{font-size:12px;line-height:1.4;margin-bottom:8px}html[data-page="menu"] .menu-link{min-height:46px;padding:4px 9px}html[data-page="menu"] .menu-link-icon{width:34px;height:34px;font-size:18px}html[data-page="menu"] .menu-links{gap:5px}html[data-page="menu"] .hero-art{height:12svh;min-height:50px}html[data-page="menu"] .hero-note{display:none}}
 @media(max-height:560px) and (min-width:851px){html[data-page="menu"] h1{font-size:42px}html[data-page="menu"] .hero-copy>p{font-size:12px;margin-bottom:8px}html[data-page="menu"] .menu-link{min-height:48px;padding:4px 10px}html[data-page="menu"] .menu-links{gap:5px}html[data-page="menu"] .hero-note{display:none}}
 @media(max-height:500px) and (max-width:850px){html[data-page="menu"] h1{font-size:28px;margin:5px 0}html[data-page="menu"] .hero-copy>p{display:none}html[data-page="menu"] .menu-link{min-height:40px;padding:2px 8px}html[data-page="menu"] .menu-link-icon{width:30px;height:30px;font-size:16px}html[data-page="menu"] .hero-art{height:10svh;min-height:38px}html[data-page="menu"] .hero{gap:6px}}
+
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.challenge-section[data-page="challenge"] .challenge-layout{display:flex;justify-content:center;align-items:center;gap:22px;max-width:1200px}
+.challenge-section[data-page="challenge"] .question-card{width:min(800px,100%);padding:20px 40px 32px}
+.challenge-section[data-page="challenge"] .question-icon{height:auto;font-size:0;line-height:0;margin:0 auto 8px}
+.challenge-section[data-page="challenge"] .question-icon svg{display:block;width:min(100%,225px);height:auto;margin:auto}
+.challenge-section[data-page="challenge"] .question-card h3{font-size:clamp(22px,2.4vw,30px);min-height:0;margin-bottom:18px}
+.challenge-section[data-page="challenge"] .answer-row{grid-template-columns:240px minmax(0,1fr) auto;max-width:688px}
+.challenge-section[data-page="challenge"] .answer-row label{font-size:48px;white-space:nowrap}
+.challenge-section[data-page="challenge"] .input-wrap{min-height:80px;padding:0 18px}
+.challenge-section[data-page="challenge"] .input-wrap input{flex:1;font-size:26px;padding:20px 0;appearance:textfield;-moz-appearance:textfield}
+.challenge-section[data-page="challenge"] .input-wrap input::-webkit-inner-spin-button,.challenge-section[data-page="challenge"] .input-wrap input::-webkit-outer-spin-button{appearance:none;margin:0}
+.challenge-section[data-page="challenge"] .answer-suffix{display:flex;align-items:center;gap:6px;flex:none}
+.challenge-section[data-page="challenge"] .answer-suffix span{font-size:44px;line-height:1;white-space:nowrap}
+.challenge-section[data-page="challenge"] .answer-stepper{display:grid;width:40px;height:64px}
+.challenge-section[data-page="challenge"] .answer-stepper button{display:grid;place-items:center;width:40px;min-height:32px;padding:0;border:0;background:#eef2f1;color:#41575a;font-size:18px;line-height:1}
+.challenge-section[data-page="challenge"] .answer-stepper button:first-child{border-radius:5px 5px 0 0}
+.challenge-section[data-page="challenge"] .answer-stepper button:last-child{border-radius:0 0 5px 5px}
+.challenge-section[data-page="challenge"] #check-answer{min-height:80px;padding:18px 22px;font-size:24px}
+.next-question-button{flex:none;display:flex;align-items:center;gap:10px;justify-content:center;min-height:52px;padding:13px 20px;border:0;border-radius:11px;background:linear-gradient(120deg,#104b42,#2d826e 55%,#8bc9a9);color:#fff;font-size:16px;font-weight:900;text-shadow:0 1px 3px #123e3680;box-shadow:0 8px 22px #081f2730;transition:transform .2s,filter .2s}
+.next-question-button:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.next-question-button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.next-question-button span{font-size:22px;line-height:1}
+@media(max-width:980px){.challenge-section[data-page="challenge"] .challenge-layout{flex-direction:column}.challenge-section[data-page="challenge"] .question-card{width:min(800px,100%)}.next-question-button{align-self:center}}
+@media(max-width:760px){.challenge-section[data-page="challenge"] .answer-row{grid-template-columns:minmax(0,1fr);max-width:none}.challenge-section[data-page="challenge"] .answer-row label{grid-column:auto}.challenge-section[data-page="challenge"] #check-answer{width:100%}}
+@media(max-width:620px){.challenge-section[data-page="challenge"] .question-card{padding:16px 20px 24px}.challenge-section[data-page="challenge"] .question-icon svg{width:min(100%,172.5px)}.challenge-section[data-page="challenge"] .question-card h3{font-size:20px}.next-question-button{width:100%}}
+@media(max-width:380px){.challenge-section[data-page="challenge"] .input-wrap{flex-wrap:wrap;padding-top:8px;padding-bottom:8px}.challenge-section[data-page="challenge"] .input-wrap input{flex-basis:100%;padding:8px 0}.challenge-section[data-page="challenge"] .answer-suffix{margin-left:auto}}
+
+.site-header nav{margin-left:auto}
+@media(min-width:851px){html[data-page="menu"] .hero{align-content:center;align-items:start}html[data-page="menu"] .hero-copy{padding-top:0}html[data-page="menu"] h1{margin-top:0}}
+@media(min-width:851px){html[data-page="menu"] .menu-links{transform:translateY(16px)}}
+#explore{padding-top:24px}
+@media(max-width:620px){#explore{padding-top:16px}}
+site-header{display:block;width:100%}
+.grid-lab .lab-sidebar .pill{background:#e7f2ed;color:#1a817d}
