@@ -1,192 +1,235 @@
-const SIZE = 10, CELL = 40, LEFT = 60, TOP = 20;
-const BLUE = '#638fda', BLUE_DARK = '#386ac0';
 const $ = id => document.getElementById(id);
-const LEVELS = [
-  { name: '热身', min: 5, max: 7, moves: [false] },
-  { name: '进阶', min: 8, max: 11, moves: [true] },
-  { name: '挑战', min: 12, max: 16, moves: [false, true] },
-  { name: '高手', min: 17, max: 22, moves: [false, true, false] },
-  { name: '终极挑战', min: 23, max: 29, moves: [false, true, false, true] }
-];
-let full = new Set(), pairs = [], progress = 0, animation = null, level = 1;
+const GRID = { left: 60, top: 20, cell: 40, count: 10 };
+const dimensions = { length: 5, width: 5 };
+const placed = { length: false, width: false };
+let origin = { x: 2, y: 2 };
+let drag = null;
 
-function rowOf(index) { return Math.floor(index / SIZE); }
-function colOf(index) { return index % SIZE; }
-function neighbors(index) {
-  const r = rowOf(index), c = colOf(index);
-  return [
-    r > 0 ? index - SIZE : -1,
-    r < SIZE - 1 ? index + SIZE : -1,
-    c > 0 ? index - 1 : -1,
-    c < SIZE - 1 ? index + 1 : -1
-  ].filter(i => i >= 0);
-}
-function randomItem(items) { return items[Math.floor(Math.random() * items.length)]; }
-
-function growFull(target) {
-  full = new Set([44]);
-  while (full.size < target) {
-    const choices = [...full].flatMap(neighbors).filter(index => {
-      const r = rowOf(index), c = colOf(index);
-      return r >= 1 && r <= 8 && c >= 1 && c <= 8 && !full.has(index);
-    });
-    if (!choices.length) return false;
-    full.add(randomItem(choices));
-  }
-  return true;
+function format(value) {
+  return Number(value.toFixed(2)).toString();
 }
 
-function choosePairs(moves) {
-  const empty = Array.from({ length: 100 }, (_, i) => i).filter(i => !full.has(i));
-  const touchesTopOrLeft = i => (rowOf(i) > 0 && full.has(i - SIZE)) || (colOf(i) > 0 && full.has(i - 1));
-  const touchesBottomOrRight = i => (rowOf(i) < 9 && full.has(i + SIZE)) || (colOf(i) < 9 && full.has(i + 1));
-  const tl = empty.filter(touchesTopOrLeft);
-  const br = empty.filter(touchesBottomOrRight);
-  const used = new Set();
-  const pick = candidates => {
-    const options = candidates.filter(i => !used.has(i));
-    if (!options.length) return null;
-    const selected = randomItem(options);
-    used.add(selected);
-    return selected;
+function svgPoint(clientX, clientY) {
+  const matrix = $('shape-canvas').getScreenCTM();
+  if (!matrix) return null;
+  const point = new DOMPoint(clientX, clientY).matrixTransform(matrix.inverse());
+  return {
+    x: (point.x - GRID.left) / GRID.cell,
+    y: (point.y - GRID.top) / GRID.cell
   };
-  const selected = [];
-  for (const rotate of moves) {
-    const anchor = pick(tl), mover = pick(rotate ? tl : br);
-    if (anchor === null || mover === null) return false;
-    selected.push({ anchor, mover, rotate });
-  }
-  pairs = selected;
-  return true;
 }
 
-function stopAnimation() {
-  if (animation !== null) cancelAnimationFrame(animation);
-  animation = null;
-  $('play-button').textContent = '▶ 播放';
+function insideGrid(point) {
+  return point && point.x >= 0 && point.x <= 10 && point.y >= 0 && point.y <= 10;
 }
 
-function generateBoard() {
-  stopAnimation();
-  progress = 0;
-  $('motion-progress').value = 0;
-  const spec = LEVELS[level - 1];
-  for (let attempt = 0; attempt < 200; attempt++) {
-    const target = spec.min + Math.floor(Math.random() * (spec.max - spec.min + 1));
-    if (growFull(target) && choosePairs(spec.moves)) {
-      renderBoard();
-      newQuestion();
-      return;
-    }
-  }
-  throw new Error('无法生成可拼合的图形');
+function clampOrigin(x, y, includeLength, includeWidth) {
+  const maxX = includeLength ? Math.floor(10 - dimensions.length) : 9;
+  const maxY = includeWidth ? Math.floor(10 - dimensions.width) : 9;
+  return {
+    x: Math.max(0, Math.min(maxX, Math.floor(x))),
+    y: Math.max(0, Math.min(maxY, Math.floor(y)))
+  };
 }
 
-function nextLevel() {
-  level = Math.min(LEVELS.length, level + 1);
-  generateBoard();
+function proposedOrigin(type, point) {
+  const addingLength = placed.length || type === 'length';
+  const addingWidth = placed.width || type === 'width';
+  // The second strip joins the first at its starting corner.
+  const joinsFirst = !placed[type] && (placed.length || placed.width);
+  const x = joinsFirst ? origin.x : point.x;
+  const y = joinsFirst ? origin.y : point.y;
+  return clampOrigin(x, y, addingLength, addingWidth);
 }
 
-function cellX(index) { return LEFT + colOf(index) * CELL; }
-function cellY(index) { return TOP + rowOf(index) * CELL; }
-function triangle(index, orientation, attributes = '') {
-  const x = cellX(index), y = cellY(index);
-  const points = orientation === 'TL'
-    ? `${x},${y} ${x + CELL},${y} ${x},${y + CELL}`
-    : `${x + CELL},${y} ${x + CELL},${y + CELL} ${x},${y + CELL}`;
-  return `<polygon points="${points}" ${attributes}/>`;
+function barMarkup(type, position, preview = false) {
+  const x = GRID.left + position.x * GRID.cell;
+  const y = GRID.top + position.y * GRID.cell;
+  const value = dimensions[type];
+  const length = value * GRID.cell;
+  const isLength = type === 'length';
+  const barX = isLength ? x : x - 5;
+  const barY = isLength ? y - 5 : y;
+  const barWidth = isLength ? length : 10;
+  const barHeight = isLength ? 10 : length;
+  const labelX = isLength ? x + length / 2 : x - 17;
+  const labelY = isLength ? y - 12 : y + length / 2 + 4;
+  const mark = isLength
+    ? Array.from({ length: Math.floor(value) + 1 }, (_, i) => `<line x1="${x + i * 40}" x2="${x + i * 40}" y1="${y - 5}" y2="${y + 5}" stroke="#fff" stroke-opacity=".65"/>`).join('')
+    : Array.from({ length: Math.floor(value) + 1 }, (_, i) => `<line x1="${x - 5}" x2="${x + 5}" y1="${y + i * 40}" y2="${y + i * 40}" stroke="#fff" stroke-opacity=".65"/>`).join('');
+  return `<g ${preview ? 'opacity=".55" pointer-events="none"' : `data-board-bar="${type}" role="button" tabindex="0" aria-label="拖动${isLength ? '长' : '宽'}的蓝条重新放置"`} class="board-bar"><rect x="${barX}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="4" fill="#397bd9" stroke="#245da9" stroke-width="1.5"/>${mark}<text x="${labelX}" y="${labelY}" text-anchor="middle" font-size="15" font-weight="800" fill="#305da5" pointer-events="none">${format(value)}</text><rect x="${barX - 8}" y="${barY - 8}" width="${barWidth + 16}" height="${barHeight + 16}" fill="transparent"/></g>`;
 }
 
-function renderBoard() {
+function renderBoard(previewType = null, previewPosition = null) {
+  const { left, top, cell, count } = GRID;
+  const displayOrigin = previewPosition || origin;
   let svg = '<rect x="0" y="0" width="520" height="440" fill="#fff"/>';
-  full.forEach(index => {
-    svg += `<rect x="${cellX(index)}" y="${cellY(index)}" width="${CELL}" height="${CELL}" fill="${BLUE}"/>`;
-  });
-  pairs.forEach(pair => { svg += triangle(pair.anchor, 'TL', `fill="${BLUE}"`); });
-  for (let i = 0; i <= SIZE; i++) {
-    const x = LEFT + i * CELL, y = TOP + i * CELL;
-    svg += `<line x1="${x}" y1="${TOP}" x2="${x}" y2="${TOP + SIZE * CELL}" stroke="#87918f" stroke-width="${i === 0 || i === SIZE ? 1.8 : 1}" opacity=".8"/>`;
-    svg += `<line x1="${LEFT}" y1="${y}" x2="${LEFT + SIZE * CELL}" y2="${y}" stroke="#87918f" stroke-width="${i === 0 || i === SIZE ? 1.8 : 1}" opacity=".8"/>`;
+  if (placed.length && placed.width) {
+    const x = left + displayOrigin.x * cell;
+    const y = top + displayOrigin.y * cell;
+    svg += `<rect x="${x}" y="${y}" width="${dimensions.length * cell}" height="${dimensions.width * cell}" fill="#b8d5fb" fill-opacity=".65"/>`;
   }
-  const p = progress / 100;
-  pairs.forEach(pair => {
-    const x = cellX(pair.mover), y = cellY(pair.mover);
-    const dx = (cellX(pair.anchor) - x) * p;
-    const dy = (cellY(pair.anchor) - y) * p;
-    const angle = pair.rotate ? 180 * p : 0;
-    const orientation = pair.rotate ? 'TL' : 'BR';
-    if (progress > 0) svg += triangle(pair.mover, orientation, 'fill="none" stroke="#9eb9df" stroke-width="2" stroke-dasharray="5 4"');
-    svg += `<g transform="translate(${dx} ${dy}) rotate(${angle} ${x + CELL/2} ${y + CELL/2})">${triangle(pair.mover, orientation, `fill="${BLUE}" stroke="${BLUE_DARK}" stroke-width="2" stroke-linejoin="miter"`)}</g>`;
-  });
-  if (progress === 100) {
-    pairs.forEach(pair => {
-      svg += `<rect x="${cellX(pair.anchor)}" y="${cellY(pair.anchor)}" width="${CELL}" height="${CELL}" fill="none" stroke="#1d786f" stroke-width="3"/>`;
-    });
+  for (let i = 0; i <= count; i++) {
+    const coordinate = i * cell;
+    svg += `<line x1="${left + coordinate}" y1="${top}" x2="${left + coordinate}" y2="${top + count * cell}" stroke="#9aa9a8" stroke-width="${i === 0 || i === count ? 1.8 : 1}"/>`;
+    svg += `<line x1="${left}" y1="${top + coordinate}" x2="${left + count * cell}" y2="${top + coordinate}" stroke="#9aa9a8" stroke-width="${i === 0 || i === count ? 1.8 : 1}"/>`;
   }
+  for (const type of ['length', 'width']) {
+    if (placed[type]) svg += barMarkup(type, displayOrigin);
+  }
+  if (previewType && previewPosition && !placed[previewType]) svg += barMarkup(previewType, previewPosition, true);
   $('shape-canvas').innerHTML = svg;
-  const area = full.size + pairs.length;
-  const halves = pairs.length * 2;
-  const spec = LEVELS[level - 1];
-  $('blue-count').textContent = area;
-  $('total-count').textContent = `${area} cm²`;
-  $('calculation-text').textContent = `${full.size} 个整格 + ${halves} 个半格 = ${area} cm²`;
-  $('motion-percent').textContent = `${progress}%`;
-  $('motion-note').textContent = progress === 0 ? `${halves} 个半格，试着把它们两两拼合` : progress === 100 ? `拼好了！${halves} 个半格变成 ${pairs.length} 个整格` : '观察蓝色三角形怎样平移和旋转';
-  $('level-label').textContent = `第 ${level} 关 / ${LEVELS.length}`;
-  $('level-name').textContent = `第 ${level} 关 · ${spec.name}`;
-  $('lesson-description').textContent = level === 1
-    ? '先从简单的一对半格开始。沿着方格的对角线切开，会得到半格的小三角形。'
-    : `这一关有 ${full.size} 个整格、${halves} 个半格。试着找出哪两块半格可以拼成一格。`;
-  $('operation-list').innerHTML = pairs.map((pair, index) => `<div><span class="operation-symbol">${pair.rotate ? '↻' : '→'}</span>${pair.rotate ? '旋转半圈再平移' : '平移'}一块半格，补齐第 ${index + 1} 格</div>`).join('');
-  $('regenerate-button').textContent = level < LEVELS.length ? '↗ 下一关：难一点' : '↻ 再来一道终极挑战';
-  $('new-question').textContent = level < LEVELS.length ? '进入下一关 ↗' : '再来一道终极挑战 ↻';
-  $('shape-canvas').setAttribute('aria-label', `第 ${level} 关蓝色图形：${full.size} 个整格和 ${halves} 个半格，面积 ${area} 平方厘米。拼合进度 ${progress}%。`);
+  const complete = placed.length && placed.width;
+  const area = dimensions.length * dimensions.width;
+  $('total-count').textContent = complete ? `${format(area)} cm²` : '等待放入长和宽';
+  $('calculation-text').textContent = complete
+    ? `${format(dimensions.length)} × ${format(dimensions.width)} = ${format(area)} cm²`
+    : '长 × 宽 = 面积';
+  $('question-text').textContent = complete
+    ? `长 ${format(dimensions.length)} cm、宽 ${format(dimensions.width)} cm，面积是多少？`
+    : '把长和宽放入方格纸，再计算面积。';
+  $('shape-canvas').setAttribute('aria-label', complete
+    ? `10 乘 10 方格纸中，长 ${format(dimensions.length)} 厘米、宽 ${format(dimensions.width)} 厘米的长方形，面积 ${format(area)} 平方厘米。`
+    : `10 乘 10 方格纸。${placed.length ? '已放入长。' : ''}${placed.width ? '已放入宽。' : ''}`);
 }
 
-$('motion-progress').addEventListener('input', event => {
-  stopAnimation();
-  progress = Number(event.target.value);
+function setNote() {
+  $('motion-note').textContent = placed.length && placed.width
+    ? '两根蓝条已放好。拖动紫色圆点，观察面积怎样变化。'
+    : placed.length || placed.width
+      ? `已放入${placed.length ? '长' : '宽'}，再把另一根蓝条拖进方格纸。`
+      : '先拖动紫色圆点调整数值，再把蓝条拖进方格纸。';
+}
+
+function updateControl(type) {
+  const input = $(`${type}-range`);
+  const output = $(`${type}-value`);
+  const bar = $(`${type}-bar`);
+  const ratio = (dimensions[type] - 1) / 9;
+  output.value = format(dimensions[type]);
+  output.textContent = format(dimensions[type]);
+  const wrap = input.parentElement;
+  output.style.left = `${10 + ratio * Math.max(0, wrap.clientWidth - 20)}px`;
+  bar.style.width = `${dimensions[type] * 10}%`;
+  bar.setAttribute('aria-label', `把${type === 'length' ? '长' : '宽'} ${format(dimensions[type])} 厘米的蓝条拖入方格`);
+}
+
+for (const type of ['length', 'width']) {
+  $(`${type}-range`).addEventListener('input', event => {
+    dimensions[type] = Number(event.target.value);
+    if (placed.length || placed.width) {
+      origin = clampOrigin(origin.x, origin.y, placed.length, placed.width);
+    }
+    updateControl(type);
+    renderBoard();
+    $('answer-feedback').textContent = '数值变了，再算算新的面积。';
+    $('answer-feedback').className = 'feedback';
+  });
+  $(`${type}-bar`).addEventListener('pointerdown', event => beginDrag(event, type));
+  $(`${type}-bar`).addEventListener('keydown', event => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    if (!placed.length && !placed.width) origin = clampOrigin(2, 2, type === 'length', type === 'width');
+    placed[type] = true;
+    origin = clampOrigin(origin.x, origin.y, placed.length, placed.width);
+    renderBoard();
+    setNote();
+  });
+}
+
+function beginDrag(event, type) {
+  if (event.button !== undefined && event.button !== 0) return;
+  event.preventDefault();
+  drag = { type, pointerId: event.pointerId, preview: null };
+  document.body.classList.add('is-dragging');
+  document.addEventListener('pointermove', moveDrag);
+  document.addEventListener('pointerup', endDrag);
+  document.addEventListener('pointercancel', cancelDrag);
+  moveDrag(event);
+}
+
+function moveDrag(event) {
+  if (!drag || event.pointerId !== drag.pointerId) return;
+  const point = svgPoint(event.clientX, event.clientY);
+  drag.preview = insideGrid(point) ? proposedOrigin(drag.type, point) : null;
+  renderBoard(drag.preview ? drag.type : null, drag.preview);
+  $('shape-canvas').classList.toggle('drop-ready', Boolean(drag.preview));
+}
+
+function endDrag(event) {
+  if (!drag || event.pointerId !== drag.pointerId) return;
+  const point = svgPoint(event.clientX, event.clientY);
+  if (insideGrid(point)) {
+    origin = proposedOrigin(drag.type, point);
+    placed[drag.type] = true;
+    origin = clampOrigin(origin.x, origin.y, placed.length, placed.width);
+    $('answer-feedback').textContent = '现在试着算出面积。';
+    $('answer-feedback').className = 'feedback';
+  }
+  finishDrag();
+}
+
+function cancelDrag(event) {
+  if (drag && event.pointerId === drag.pointerId) finishDrag();
+}
+
+function finishDrag() {
+  drag = null;
+  document.body.classList.remove('is-dragging');
+  $('shape-canvas').classList.remove('drop-ready');
+  document.removeEventListener('pointermove', moveDrag);
+  document.removeEventListener('pointerup', endDrag);
+  document.removeEventListener('pointercancel', cancelDrag);
+  renderBoard();
+  setNote();
+}
+
+$('shape-canvas').addEventListener('pointerdown', event => {
+  const bar = event.target.closest('[data-board-bar]');
+  if (bar) beginDrag(event, bar.dataset.boardBar);
+});
+$('shape-canvas').addEventListener('keydown', event => {
+  const bar = event.target.closest('[data-board-bar]');
+  if (!bar || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+  event.preventDefault();
+  const deltaX = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0;
+  const deltaY = event.key === 'ArrowUp' ? -1 : event.key === 'ArrowDown' ? 1 : 0;
+  origin = clampOrigin(origin.x + deltaX, origin.y + deltaY, placed.length, placed.width);
   renderBoard();
 });
-$('play-button').addEventListener('click', () => {
-  if (animation !== null) { stopAnimation(); return; }
-  if (progress >= 100) progress = 0;
-  const initial = progress, start = performance.now();
-  $('play-button').textContent = 'Ⅱ 暂停';
-  const frame = now => {
-    progress = Math.min(100, Math.round(initial + (100 - initial) * (now - start) / 1900));
-    $('motion-progress').value = progress;
-    renderBoard();
-    if (progress < 100) animation = requestAnimationFrame(frame);
-    else stopAnimation();
-  };
-  animation = requestAnimationFrame(frame);
-});
-$('regenerate-button').addEventListener('click', nextLevel);
-
-function newQuestion() {
-  $('question-number').textContent = `第 ${level} 关 / ${LEVELS.length}`;
-  $('question-icon').textContent = '◩';
-  $('question-icon').style.color = BLUE;
-  $('question-text').textContent = `第 ${level} 关：蓝色图形的面积是多少 cm²？`;
+$('reset-board').addEventListener('click', () => {
+  placed.length = false;
+  placed.width = false;
+  origin = { x: 2, y: 2 };
   $('answer-input').value = '';
-  $('answer-feedback').textContent = `提示：${pairs.length * 2} 个半格可以拼成 ${pairs.length} 个整格。`;
+  $('answer-feedback').textContent = '先动手算算看吧！';
   $('answer-feedback').className = 'feedback';
-}
-
+  renderBoard();
+  setNote();
+});
 function checkAnswer() {
-  const input = $('answer-input').value.trim();
   const feedback = $('answer-feedback');
-  if (!input) { feedback.textContent = '先输入你的答案。'; feedback.className = 'feedback incorrect'; return; }
-  const area = full.size + pairs.length;
-  const correct = Number(input) === area;
+  if (!placed.length || !placed.width) {
+    feedback.textContent = '先把长和宽放入方格纸。';
+    feedback.className = 'feedback incorrect';
+    return;
+  }
+  const answer = $('answer-input').value.trim();
+  if (!answer) {
+    feedback.textContent = '先输入你的答案。';
+    feedback.className = 'feedback incorrect';
+    return;
+  }
+  const area = dimensions.length * dimensions.width;
+  const correct = Math.abs(Number(answer) - area) < 0.000001;
   feedback.textContent = correct
-    ? `答对了！${full.size} 个整格 + ${pairs.length * 2} 个半格 = ${area} cm²。`
-    : `再试一次：先数整格，再把 ${pairs.length * 2} 个半格看成 ${pairs.length} 个整格。`;
+    ? `答对了！${format(dimensions.length)} × ${format(dimensions.width)} = ${format(area)} cm²。`
+    : `再试一次：用 ${format(dimensions.length)} × ${format(dimensions.width)} 计算。`;
   feedback.className = `feedback ${correct ? 'correct' : 'incorrect'}`;
 }
-
-$('new-question').addEventListener('click', nextLevel);
 $('check-answer').addEventListener('click', checkAnswer);
 $('answer-input').addEventListener('keydown', event => { if (event.key === 'Enter') checkAnswer(); });
-generateBoard();
+window.addEventListener('resize', () => { updateControl('length'); updateControl('width'); });
+updateControl('length');
+updateControl('width');
+renderBoard();
