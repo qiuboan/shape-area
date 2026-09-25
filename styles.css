@@ -8,3 +8,30 @@
 @media(max-width:620px){.dimension-control{padding:12px}.graph-paper{height:330px}.grid-lab .canvas-footer{align-items:flex-start}.reset-button{font-size:11px}}
 .dimension-ruler{background:#fff;border:1px solid #b9cce1;overflow:hidden}.ruler-bar{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));width:100%;min-width:0;background:none;box-shadow:none}.ruler-cell{height:100%;border-right:1px solid #b9cce1}.ruler-cell:last-child{border-right:0}.ruler-cell.active{background:#397bd9;border-right-color:#c7dbf7;cursor:grab}.ruler-cell.empty{background:#fff;cursor:default}
 .ruler-bar,.ruler-bar:active,.ruler-cell.active{cursor:default}.graph-paper svg{touch-action:auto}
+
+/* 面积卡片位于方格纸左侧，长宽控制位于右侧。 */
+.grid-lab{grid-template-columns:250px minmax(0,1fr) 320px}
+.grid-lab .formula-sidebar{min-width:0;padding:60px 18px 24px;border-right:1px solid #e5ebe6}
+.grid-lab .formula-sidebar .formula-box{margin:0}
+.grid-lab .formula-sidebar .insight{margin-top:20px}
+.grid-lab .lab-main{padding:27px 14px 17px}
+.grid-lab .lab-sidebar{padding:29px 20px 25px}
+@media(max-width:1080px){
+  .grid-lab{grid-template-columns:minmax(0,1fr) 300px}
+  .grid-lab .lab-main{grid-column:1;grid-row:1}
+  .grid-lab .formula-sidebar{grid-column:1;grid-row:2;display:flex;gap:16px;align-items:flex-start;padding:20px}
+  .grid-lab .formula-sidebar .formula-box,.grid-lab .formula-sidebar .insight{flex:1;min-width:0}
+  .grid-lab .formula-sidebar .insight{margin:0}
+  .grid-lab .lab-sidebar{grid-column:2;grid-row:1 / span 2}
+}
+@media(max-width:850px){
+  .grid-lab{grid-template-columns:1fr}
+  .grid-lab .lab-main{grid-column:1;grid-row:1;border-right:0}
+  .grid-lab .formula-sidebar{grid-column:1;grid-row:2;border-right:0;border-bottom:1px solid #e5ebe6}
+  .grid-lab .lab-sidebar{grid-column:1;grid-row:3}
+}
+@media(max-width:620px){
+  .grid-lab .lab-main{padding:18px 15px}
+  .grid-lab .formula-sidebar{display:block;padding:20px}
+  .grid-lab .formula-sidebar .insight{margin-top:18px}
+}

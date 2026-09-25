@@ -41,6 +41,10 @@
       <div class="wrap">
         <div class="section-heading"><div><div class="section-kicker">01 / 动手探索</div><h2 id="explore-title">在方格纸上发现面积</h2><p>长和宽从 5 cm 开始。拖动紫色圆点改变边长，观察蓝色长方形的面积。</p></div><div class="scribble" aria-hidden="true">↘</div></div>
         <div class="lab-card grid-lab">
+          <aside class="formula-sidebar" aria-label="长方形面积与提示">
+            <div class="formula-box"><div class="formula-caption">长方形面积 <span>✦</span></div><div class="formula" id="total-count">25 cm²</div><div class="calculation" id="calculation-text">5 × 5 = 25 cm²</div></div>
+            <p class="insight">长增加 1 cm，面积会增加当前宽的格数；宽增加 1 cm，面积会增加当前长的格数。</p>
+          </aside>
           <div class="lab-main">
             <div class="canvas-head"><div><span class="live-dot"></span> 100 格实验纸</div><span class="unit-label">每格边长 1 cm</span></div>
             <div class="canvas-wrap graph-paper"><svg id="shape-canvas" viewBox="0 0 520 460" role="img" aria-label="10 乘 10 方格纸中，长和宽都是 5 厘米的蓝色长方形"></svg></div>
@@ -51,8 +55,6 @@
             <h3>拖动圆点，改变长和宽</h3><p class="shape-description">每根数值条固定 10 格。蓝格表示当前边长，白格表示剩余长度。拖动紫色圆点，方格纸上的图形会立即变化。</p>
             <div class="dimension-control" data-dimension="length"><div class="dimension-heading"><strong>长</strong><span>横向边长</span></div><div class="dimension-ruler"><div class="ruler-bar" id="length-bar" aria-hidden="true"></div></div><div class="range-wrap"><output id="length-value" for="length-range">5</output><input id="length-range" type="range" min="1" max="10" step="1" value="5" aria-label="长，1 到 10 厘米"><div class="range-ends"><span>1</span><span>10</span></div></div></div>
             <div class="dimension-control" data-dimension="width"><div class="dimension-heading"><strong>宽</strong><span>纵向边长</span></div><div class="dimension-ruler"><div class="ruler-bar" id="width-bar" aria-hidden="true"></div></div><div class="range-wrap"><output id="width-value" for="width-range">5</output><input id="width-range" type="range" min="1" max="10" step="1" value="5" aria-label="宽，1 到 10 厘米"><div class="range-ends"><span>1</span><span>10</span></div></div></div>
-            <div class="formula-box"><div class="formula-caption">长方形面积 <span>✦</span></div><div class="formula" id="total-count">25 cm²</div><div class="calculation" id="calculation-text">5 × 5 = 25 cm²</div></div>
-            <p class="insight">长增加 1 cm，面积会增加当前宽的格数；宽增加 1 cm，面积会增加当前长的格数。</p>
           </aside>
         </div>
         <div class="lab-tip"><span>💡</span> <strong>想一想：</strong>长或宽增加 1 cm，面积会增加多少？</div>
