@@ -42,3 +42,4 @@
 .shape-switch-button:hover{opacity:1}
 .shape-switch-button:focus-visible{outline:3px solid #2c479f;outline-offset:3px}
 @media(max-width:620px){.shape-switch{gap:6px}.shape-switch-button{padding:9px 10px;font-size:12px}}
+@media(max-width:620px){.grid-lab .canvas-head{flex-wrap:wrap;gap:10px}.grid-lab .canvas-head .unit-label{margin-left:auto}}
