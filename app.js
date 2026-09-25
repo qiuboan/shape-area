@@ -1,5 +1,8 @@
 const $ = id => document.getElementById(id);
 const GRID = { left: 60, top: 40, cell: 40, count: 10 };
+// Horizontal run divided by vertical height: tan(a) = 1 / 0.6.
+const PARALLELOGRAM_RUN_PER_HEIGHT = 0.6;
+const PARALLELOGRAM_TAN_ANGLE = 1 / PARALLELOGRAM_RUN_PER_HEIGHT;
 const sizes = {
   rectangle: { length: 5, width: 5 },
   parallelogram: { length: 5, width: 5 },
@@ -11,7 +14,20 @@ let dimensions = sizes.rectangle;
 function parallelogramSkew() {
   const height = dimensions.width * GRID.cell;
   const available = (GRID.count - dimensions.length) * GRID.cell;
-  return Math.min(height * 0.6, available);
+  return Math.min(height * PARALLELOGRAM_RUN_PER_HEIGHT, available, dimensions.length * GRID.cell);
+}
+
+function updateHeightLimit() {
+  const max = mode === 'parallelogram'
+    ? Math.min(10, Math.floor(dimensions.length * PARALLELOGRAM_TAN_ANGLE + 1e-9))
+    : 10;
+  dimensions.width = Math.min(dimensions.width, max);
+  $('width-range').max = max;
+  $('width-max-label').textContent = max;
+  $('dimension-range').textContent = mode === 'parallelogram' ? `高 1–${max} cm` : '范围 1–10 cm';
+  $('width-range').setAttribute('aria-label', mode === 'parallelogram'
+    ? `高，1 到 ${max} 厘米，不超过底乘夹角的正切值`
+    : `${mode === 'triangle' ? '高' : '宽'}，1 到 10 厘米`);
 }
 
 function shapeArea() {
@@ -30,7 +46,7 @@ function updateControl(type) {
   const input = $(`${type}-range`);
   const output = $(`${type}-value`);
   const bar = $(`${type}-bar`);
-  const ratio = (dimensions[type] - 1) / 9;
+  const ratio = (dimensions[type] - 1) / Math.max(1, Number(input.max) - 1);
   input.value = dimensions[type];
   output.value = dimensions[type];
   output.textContent = dimensions[type];
@@ -62,12 +78,15 @@ function renderBoard() {
   const { left, top, cell, count } = GRID;
   const { length, width } = dimensions;
   const area = shapeArea();
+  let cutX = null;
   let svg = '<rect x="0" y="0" width="520" height="460" fill="#fff"/>';
   if (mode === 'triangle') {
     svg += `<polygon points="${left},${top} ${left + length * cell},${top} ${left},${top + width * cell}" fill="#90b7ed" stroke="#397bd9" stroke-width="2"/>`;
   } else if (mode === 'parallelogram') {
     const skew = parallelogramSkew();
+    cutX = left + skew;
     svg += `<polygon points="${left + skew},${top} ${left + skew + length * cell},${top} ${left + length * cell},${top + width * cell} ${left},${top + width * cell}" fill="#90b7ed" stroke="#397bd9" stroke-width="2"/>`;
+    if (skew > 0) svg += `<polygon points="${left},${top + width * cell} ${cutX},${top} ${cutX},${top + width * cell}" fill="#7656bd" fill-opacity=".18"/>`;
   } else {
     svg += `<rect x="${left}" y="${top}" width="${length * cell}" height="${width * cell}" fill="#90b7ed"/>`;
   }
@@ -75,6 +94,9 @@ function renderBoard() {
     const coordinate = i * cell;
     svg += `<line x1="${left + coordinate}" y1="${top}" x2="${left + coordinate}" y2="${top + count * cell}" stroke="#9aa9a8" stroke-width="${i === 0 || i === count ? 1.8 : 1}"/>`;
     svg += `<line x1="${left}" y1="${top + coordinate}" x2="${left + count * cell}" y2="${top + coordinate}" stroke="#9aa9a8" stroke-width="${i === 0 || i === count ? 1.8 : 1}"/>`;
+  }
+  if (cutX !== null && cutX > left) {
+    svg += `<line x1="${cutX}" y1="${top}" x2="${cutX}" y2="${top + width * cell}" stroke="#7656bd" stroke-width="2.5" stroke-dasharray="7 5"/>`;
   }
   svg += boardBar('length') + boardBar('width');
   $('shape-canvas').innerHTML = svg;
@@ -107,12 +129,14 @@ function renderModeCopy() {
   $('shape-insight').textContent = triangle
     ? '底增加 1 cm，面积增加当前高的一半；高增加 1 cm，面积增加当前底的一半。'
     : parallelogram
-      ? '底增加 1 cm，面积增加当前高的格数；高增加 1 cm，面积增加当前底的格数。'
+      ? '沿紫色虚线竖切，把左侧三角形移到右边，可拼成同底同高的长方形，所以面积是底 × 高。'
       : '长增加 1 cm，面积会增加当前宽的格数；宽增加 1 cm，面积会增加当前长的格数。';
   $('dimension-pill').textContent = usesBaseHeight ? '调整底与高' : '调整长与宽';
   $('dimension-title').textContent = usesBaseHeight ? '拖动圆点，改变底和高' : '拖动圆点，改变长和宽';
   $('dimension-description').textContent = usesBaseHeight
-    ? `两根数值条各固定 10 格。蓝格分别表示底和高，白格表示剩余长度。拖动紫色圆点，${shapeName}会立即变化。`
+    ? parallelogram
+      ? '两根数值条各固定 10 格。为能竖切，高不超过底 × tan a；本图按约 59° 的最小夹角限制高。拖动紫色圆点观察图形。'
+      : `两根数值条各固定 10 格。蓝格分别表示底和高，白格表示剩余长度。拖动紫色圆点，${shapeName}会立即变化。`
     : '每根数值条固定 10 格。蓝格表示当前边长，白格表示剩余长度。拖动紫色圆点，方格纸上的图形会立即变化。';
   $('length-label').textContent = usesBaseHeight ? '底' : '长';
   $('width-label').textContent = usesBaseHeight ? '高' : '宽';
@@ -123,7 +147,7 @@ function renderModeCopy() {
   $('lab-tip-text').textContent = triangle
     ? '为什么三角形的面积是底乘高的一半？'
     : parallelogram
-      ? '把平行四边形一侧的三角形移到另一侧，会得到什么图形？'
+      ? '沿紫色虚线竖切后，把左侧三角形移到右侧，为什么面积不变？'
       : '长或宽增加 1 cm，面积会增加多少？';
   $('challenge-description').textContent = usesBaseHeight
     ? `调整底和高后，先自己计算${shapeName}面积，再来核对答案。`
@@ -137,6 +161,7 @@ function selectMode(nextMode) {
   mode = nextMode;
   dimensions = sizes[mode];
   renderModeCopy();
+  updateHeightLimit();
   updateControl('length');
   updateControl('width');
   renderBoard();
@@ -151,8 +176,10 @@ $('triangle-tab').addEventListener('click', () => selectMode('triangle'));
 
 for (const type of ['length', 'width']) {
   $(`${type}-range`).addEventListener('input', event => {
-    dimensions[type] = Math.max(1, Math.min(10, Math.round(Number(event.target.value))));
-    updateControl(type);
+    dimensions[type] = Math.max(1, Math.min(Number(event.target.max), Math.round(Number(event.target.value))));
+    updateHeightLimit();
+    updateControl('length');
+    updateControl('width');
     renderBoard();
     $('answer-feedback').textContent = '数值变了，再算算新的面积。';
     $('answer-feedback').className = 'feedback';
@@ -162,6 +189,7 @@ for (const type of ['length', 'width']) {
 $('reset-board').addEventListener('click', () => {
   dimensions.length = 5;
   dimensions.width = 5;
+  updateHeightLimit();
   updateControl('length');
   updateControl('width');
   renderBoard();
@@ -192,4 +220,5 @@ window.addEventListener('resize', () => { updateControl('length'); updateControl
 updateControl('length');
 updateControl('width');
 renderModeCopy();
+updateHeightLimit();
 renderBoard();
