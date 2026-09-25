@@ -65,3 +65,11 @@
 .graph-paper svg [data-triangle-copy]{cursor:grab}
 .graph-paper svg [data-triangle-copy]:active{cursor:grabbing}
 .puzzle-action{width:max-content;min-width:146px;max-width:100%}
+
+.shape-switch{flex-wrap:wrap;min-width:0}
+.grid-lab .canvas-head{flex-wrap:wrap;gap:10px}
+.grid-lab .canvas-head .unit-label{margin-left:auto}
+.dimension-control[hidden]{display:none}
+.graph-paper svg [data-trapezoid-cut]{cursor:ew-resize}
+.graph-paper svg [data-trapezoid-piece]{cursor:grab}
+.graph-paper svg [data-trapezoid-piece]:active{cursor:grabbing}

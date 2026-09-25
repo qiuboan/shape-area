@@ -12,3 +12,8 @@
 - Keep deployment configuration and build instructions in the repository so the site can be rebuilt and deployed again.
 - Do not commit credentials, API tokens, or other secrets. Use the hosting platform's environment variables for secrets when needed.
 - Before reporting completion, run the relevant build or checks and provide the GitHub repository link. Provide a live site link only when the user has requested deployment and it is available.
+
+## Git workflow
+
+- Do not automatically commit or push changes. Run `git commit` or `git push` only when the user explicitly requests that action.
+- After ordinary edits, leave changes in the working tree and state clearly that they have not been committed or pushed.
