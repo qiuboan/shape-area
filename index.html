@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f7f5ef">
   <meta name="description" content="从 5 × 5 长方形开始，调整长和宽，直观看见 100 个方格中的面积变化。">
   <title>图形动起来 · 面积看得见</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=2">
   <script src="app.js?v=16" defer></script>
 </head>
 <body>
@@ -49,7 +49,7 @@
             <div class="canvas-head"><div class="shape-switch" role="group" aria-label="选择图形"><button id="rectangle-tab" class="shape-switch-button active" type="button" aria-pressed="true">长方形</button><button id="parallelogram-tab" class="shape-switch-button" type="button" aria-pressed="false">平行四边形</button><button id="triangle-tab" class="shape-switch-button" type="button" aria-pressed="false">三角形</button></div><span class="unit-label">每格边长 1 cm</span></div>
             <div class="canvas-wrap graph-paper"><svg id="shape-canvas" viewBox="0 0 520 460" role="img" aria-label="10 乘 10 方格纸中，长和宽都是 5 厘米的蓝色长方形"></svg><div id="puzzle-feedback" class="puzzle-feedback" aria-live="assertive" hidden></div></div>
             <button id="puzzle-action" class="puzzle-action" type="button" hidden><span id="puzzle-action-icon" aria-hidden="true">✂</span><span id="puzzle-action-text">剪</span></button>
-            <div class="canvas-footer"><span id="motion-note" role="status" aria-live="polite">当前长 5 cm、宽 5 cm。拖动紫色圆点改变图形。</span><button id="reset-board" class="reset-button" type="button">恢复 5 × 5 ↻</button></div>
+            <div class="canvas-footer"><span id="motion-note" role="status" aria-live="polite">当前长 5 cm、宽 5 cm。拖动紫色圆点改变图形。</span><button id="reset-board" class="reset-button" type="button">恢复原状</button></div>
           </div>
           <aside class="lab-sidebar">
             <div class="sidebar-top"><span class="pill" id="dimension-pill">调整长与宽</span><span class="lesson-number" id="dimension-range">范围 1–10 cm</span></div>

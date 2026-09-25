@@ -59,3 +59,6 @@
 .puzzle-feedback.correct{color:#1baf65}
 .puzzle-feedback.incorrect{color:#d9434d}
 @media(max-width:620px){.puzzle-feedback{width:112px;height:112px;font-size:88px}.puzzle-action{margin-top:12px}}
+
+.reset-button{flex:none;padding:9px 14px;border-radius:8px;background:linear-gradient(120deg,#4b8bd0,#657baf 55%,#8796ad);color:#fff;box-shadow:0 4px 11px #49688d30;transition:filter .2s,transform .2s}
+.reset-button:hover{text-decoration:none;filter:brightness(1.07);transform:translateY(-1px)}
