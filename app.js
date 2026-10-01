@@ -20,7 +20,7 @@ function loadUsedQuestions() {
   }
 }
 const usedQuestions = loadUsedQuestions();
-let questionMax = 20;
+let questionMax = 100;
 let questionIndex = 0;
 let challenge = { shape: 'rectangle', values: { length: 5, width: 5 } };
 let mode = 'rectangle';
@@ -30,6 +30,7 @@ let trianglePuzzle = null;
 let trapezoidPuzzle = null;
 let pointerDrag = null;
 let feedbackTimer = null;
+let answerFeedbackTimer = null;
 const CUT_TOLERANCE = 10;
 const JOIN_TOLERANCE = 12;
 
@@ -176,12 +177,12 @@ function boardBar(type) {
   ).join('');
   const labelX = horizontal ? x + width / 2 : left - 18;
   const labelY = horizontal ? top - 11 : top + height / 2 + 5;
-  return `<g aria-hidden="true"><rect x="${x}" y="${y}" width="${width}" height="${height}" rx="4" fill="#397bd9" stroke="#245da9" stroke-width="1.5"/>${ticks}<text x="${labelX}" y="${labelY}" text-anchor="middle" font-size="15" font-weight="800" fill="#305da5">${value}</text></g>`;
+  return `<g aria-hidden="true"><rect x="${x}" y="${y}" width="${width}" height="${height}" rx="4" fill="#1a817d" stroke="#176b68" stroke-width="1.5"/>${ticks}<text x="${labelX}" y="${labelY}" text-anchor="middle" font-size="15" font-weight="800" fill="#176b68">${value}</text></g>`;
 }
 
 function trapezoidBars(geometry) {
   const { topLeft, topRight, bottomLeft, bottomRight, top, bottom } = geometry;
-  return `<g aria-hidden="true"><rect x="${topLeft}" y="${top - 5}" width="${topRight - topLeft}" height="10" rx="4" fill="#397bd9"/><rect x="${bottomLeft}" y="${bottom - 5}" width="${bottomRight - bottomLeft}" height="10" rx="4" fill="#397bd9"/><text x="${(topLeft + topRight) / 2}" y="${top - 11}" text-anchor="middle" font-size="14" font-weight="800" fill="#305da5">上底 ${dimensions.length}</text><text x="${(bottomLeft + bottomRight) / 2}" y="${bottom - 14}" text-anchor="middle" font-size="14" font-weight="800" fill="#305da5">下底 ${dimensions.width}</text><text x="${GRID.left - 18}" y="${(top + bottom) / 2}" text-anchor="middle" font-size="14" font-weight="800" fill="#305da5">高 ${dimensions.height}</text></g>`;
+  return `<g aria-hidden="true"><rect x="${topLeft}" y="${top - 5}" width="${topRight - topLeft}" height="10" rx="4" fill="#1a817d"/><rect x="${bottomLeft}" y="${bottom - 5}" width="${bottomRight - bottomLeft}" height="10" rx="4" fill="#1a817d"/><text x="${(topLeft + topRight) / 2}" y="${top - 11}" text-anchor="middle" font-size="14" font-weight="800" fill="#176b68">上底 ${dimensions.length}</text><text x="${(bottomLeft + bottomRight) / 2}" y="${bottom - 14}" text-anchor="middle" font-size="14" font-weight="800" fill="#176b68">下底 ${dimensions.width}</text><text x="${GRID.left - 18}" y="${(top + bottom) / 2}" text-anchor="middle" font-size="14" font-weight="800" fill="#176b68">高 ${dimensions.height}</text></g>`;
 }
 
 function renderBoard() {
@@ -193,28 +194,28 @@ function renderBoard() {
   if (mode === 'triangle') {
     const right = left + length * cell;
     const bottom = top + width * cell;
-    svg += `<polygon points="${left},${top} ${right},${top} ${left},${bottom}" fill="#90b7ed" stroke="#397bd9" stroke-width="2"/>`;
+    svg += `<polygon points="${left},${top} ${right},${top} ${left},${bottom}" fill="#a9d3c8" fill-opacity="0.375" stroke="#1a817d" stroke-width="2"/>`;
     if (trianglePuzzle.phase !== 'copy') {
       if (trianglePuzzle.phase !== 'complete') {
-        svg += `<polygon points="${right},${top} ${right},${bottom} ${left},${bottom}" fill="#edf8ff" stroke="#4a9bca" stroke-width="2" stroke-dasharray="7 5"/>`;
+        svg += `<polygon points="${right},${top} ${right},${bottom} ${left},${bottom}" fill="#f1f7f3" fill-opacity="0.375" stroke="#4b9f91" stroke-width="2" stroke-dasharray="7 5"/>`;
       }
-      foreground = `<g data-triangle-copy="true" transform="translate(${trianglePuzzle.dx} ${trianglePuzzle.dy})"><polygon points="${right},${top} ${right},${bottom} ${left},${bottom}" fill="#c9e4ff" stroke="#5596d6" stroke-width="3"/><polygon points="${right},${top} ${right},${bottom} ${left},${bottom}" fill="transparent" stroke="transparent" stroke-width="14"/></g>`;
+      foreground = `<g data-triangle-copy="true" transform="translate(${trianglePuzzle.dx} ${trianglePuzzle.dy})"><polygon points="${right},${top} ${right},${bottom} ${left},${bottom}" fill="#cbe6df" fill-opacity="0.375" stroke="#4b9f91" stroke-width="3"/><polygon points="${right},${top} ${right},${bottom} ${left},${bottom}" fill="transparent" stroke="transparent" stroke-width="14"/></g>`;
     }
   } else if (mode === 'trapezoid') {
     const g = trapezoidGeometry();
     if (trapezoidPuzzle.phase === 'cut') {
-      svg += `<polygon points="${g.topLeft},${g.top} ${g.topRight},${g.top} ${g.bottomRight},${g.bottom} ${g.bottomLeft},${g.bottom}" fill="#90b7ed" stroke="#397bd9" stroke-width="2"/>`;
-      foreground = `<line x1="${trapezoidPuzzle.cutX}" y1="${g.top}" x2="${trapezoidPuzzle.cutX}" y2="${g.bottom}" stroke="#7656bd" stroke-width="3" stroke-dasharray="9 6" pointer-events="none"/><line data-trapezoid-cut="true" x1="${trapezoidPuzzle.cutX}" y1="${g.top}" x2="${trapezoidPuzzle.cutX}" y2="${g.bottom}" stroke="transparent" stroke-width="24" pointer-events="stroke"/>`;
+      svg += `<polygon points="${g.topLeft},${g.top} ${g.topRight},${g.top} ${g.bottomRight},${g.bottom} ${g.bottomLeft},${g.bottom}" fill="#a9d3c8" fill-opacity="0.375" stroke="#1a817d" stroke-width="2"/>`;
+      foreground = `<line x1="${trapezoidPuzzle.cutX}" y1="${g.top}" x2="${trapezoidPuzzle.cutX}" y2="${g.bottom}" stroke="#3d702c" stroke-width="3" stroke-dasharray="9 6" pointer-events="none"/><line data-trapezoid-cut="true" x1="${trapezoidPuzzle.cutX}" y1="${g.top}" x2="${trapezoidPuzzle.cutX}" y2="${g.bottom}" stroke="transparent" stroke-width="24" pointer-events="stroke"/>`;
     } else if (trapezoidPuzzle.side === 'left') {
-      svg += `<polygon points="${g.topLeft},${g.top} ${g.topRight},${g.top} ${g.bottomRight},${g.bottom} ${g.topLeft},${g.bottom}" fill="#90b7ed" stroke="#397bd9" stroke-width="2"/>`;
-      svg += `<polygon points="${g.bottomLeft},${g.bottom} ${g.topLeft},${g.top} ${g.topLeft},${g.bottom}" fill="#dcecff" stroke="#a2c3ed" stroke-width="1.5" stroke-dasharray="5 4"/>`;
-      if (trapezoidPuzzle.phase !== 'complete') svg += `<polygon points="${g.topRight},${g.top} ${g.bottomRight},${g.top} ${g.bottomRight},${g.bottom}" fill="#eff9f2" stroke="#47a77d" stroke-width="2" stroke-dasharray="7 5"/>`;
-      foreground = `<g data-trapezoid-piece="true" transform="translate(${trapezoidPuzzle.pieceDx} ${trapezoidPuzzle.pieceDy})"><polygon points="${g.topRight},${g.top} ${g.bottomRight},${g.top} ${g.bottomRight},${g.bottom}" fill="#4d8ddd" stroke="#2e69b8" stroke-width="3"/><polygon points="${g.topRight},${g.top} ${g.bottomRight},${g.top} ${g.bottomRight},${g.bottom}" fill="transparent" stroke="transparent" stroke-width="14"/></g>`;
+      svg += `<polygon points="${g.topLeft},${g.top} ${g.topRight},${g.top} ${g.bottomRight},${g.bottom} ${g.topLeft},${g.bottom}" fill="#a9d3c8" fill-opacity="0.375" stroke="#1a817d" stroke-width="2"/>`;
+      svg += `<polygon points="${g.bottomLeft},${g.bottom} ${g.topLeft},${g.top} ${g.topLeft},${g.bottom}" fill="#e7f2ed" fill-opacity="0.375" stroke="#a8c8bc" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+      if (trapezoidPuzzle.phase !== 'complete') svg += `<polygon points="${g.topRight},${g.top} ${g.bottomRight},${g.top} ${g.bottomRight},${g.bottom}" fill="#eff9f2" fill-opacity="0.375" stroke="#47a77d" stroke-width="2" stroke-dasharray="7 5"/>`;
+      foreground = `<g data-trapezoid-piece="true" transform="translate(${trapezoidPuzzle.pieceDx} ${trapezoidPuzzle.pieceDy})"><polygon points="${g.topRight},${g.top} ${g.bottomRight},${g.top} ${g.bottomRight},${g.bottom}" fill="#258b84" stroke="#176b68" stroke-width="3"/><polygon points="${g.topRight},${g.top} ${g.bottomRight},${g.top} ${g.bottomRight},${g.bottom}" fill="transparent" stroke="transparent" stroke-width="14"/></g>`;
     } else {
-      svg += `<polygon points="${g.topLeft},${g.top} ${g.topRight},${g.top} ${g.topRight},${g.bottom} ${g.bottomLeft},${g.bottom}" fill="#90b7ed" stroke="#397bd9" stroke-width="2"/>`;
-      svg += `<polygon points="${g.topRight},${g.top} ${g.bottomRight},${g.bottom} ${g.topRight},${g.bottom}" fill="#dcecff" stroke="#a2c3ed" stroke-width="1.5" stroke-dasharray="5 4"/>`;
-      if (trapezoidPuzzle.phase !== 'complete') svg += `<polygon points="${g.bottomLeft},${g.top} ${g.topLeft},${g.top} ${g.bottomLeft},${g.bottom}" fill="#eff9f2" stroke="#47a77d" stroke-width="2" stroke-dasharray="7 5"/>`;
-      foreground = `<g data-trapezoid-piece="true" transform="translate(${trapezoidPuzzle.pieceDx} ${trapezoidPuzzle.pieceDy})"><polygon points="${g.bottomLeft},${g.top} ${g.topLeft},${g.top} ${g.bottomLeft},${g.bottom}" fill="#4d8ddd" stroke="#2e69b8" stroke-width="3"/><polygon points="${g.bottomLeft},${g.top} ${g.topLeft},${g.top} ${g.bottomLeft},${g.bottom}" fill="transparent" stroke="transparent" stroke-width="14"/></g>`;
+      svg += `<polygon points="${g.topLeft},${g.top} ${g.topRight},${g.top} ${g.topRight},${g.bottom} ${g.bottomLeft},${g.bottom}" fill="#a9d3c8" fill-opacity="0.375" stroke="#1a817d" stroke-width="2"/>`;
+      svg += `<polygon points="${g.topRight},${g.top} ${g.bottomRight},${g.bottom} ${g.topRight},${g.bottom}" fill="#e7f2ed" fill-opacity="0.375" stroke="#a8c8bc" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+      if (trapezoidPuzzle.phase !== 'complete') svg += `<polygon points="${g.bottomLeft},${g.top} ${g.topLeft},${g.top} ${g.bottomLeft},${g.bottom}" fill="#eff9f2" fill-opacity="0.375" stroke="#47a77d" stroke-width="2" stroke-dasharray="7 5"/>`;
+      foreground = `<g data-trapezoid-piece="true" transform="translate(${trapezoidPuzzle.pieceDx} ${trapezoidPuzzle.pieceDy})"><polygon points="${g.bottomLeft},${g.top} ${g.topLeft},${g.top} ${g.bottomLeft},${g.bottom}" fill="#258b84" stroke="#176b68" stroke-width="3"/><polygon points="${g.bottomLeft},${g.top} ${g.topLeft},${g.top} ${g.bottomLeft},${g.bottom}" fill="transparent" stroke="transparent" stroke-width="14"/></g>`;
     }
   } else if (mode === 'parallelogram') {
     const skew = parallelogramSkew();
@@ -223,21 +224,21 @@ function renderBoard() {
     const bottom = top + width * cell;
     const topRight = cutX + base;
     if (puzzle.phase === 'cut') {
-      svg += `<polygon points="${cutX},${top} ${topRight},${top} ${left + base},${bottom} ${left},${bottom}" fill="#90b7ed" stroke="#397bd9" stroke-width="2"/>`;
-      foreground = `<line x1="${puzzle.cutX}" y1="${top}" x2="${puzzle.cutX}" y2="${bottom}" stroke="#7656bd" stroke-width="3" stroke-dasharray="9 6" pointer-events="none"/><line data-cut-handle="true" x1="${puzzle.cutX}" y1="${top}" x2="${puzzle.cutX}" y2="${bottom}" stroke="transparent" stroke-width="24" pointer-events="stroke"/>`;
+      svg += `<polygon points="${cutX},${top} ${topRight},${top} ${left + base},${bottom} ${left},${bottom}" fill="#a9d3c8" fill-opacity="0.375" stroke="#1a817d" stroke-width="2"/>`;
+      foreground = `<line x1="${puzzle.cutX}" y1="${top}" x2="${puzzle.cutX}" y2="${bottom}" stroke="#3d702c" stroke-width="3" stroke-dasharray="9 6" pointer-events="none"/><line data-cut-handle="true" x1="${puzzle.cutX}" y1="${top}" x2="${puzzle.cutX}" y2="${bottom}" stroke="transparent" stroke-width="24" pointer-events="stroke"/>`;
     } else if (puzzle.side === 'left') {
-      svg += `<polygon points="${cutX},${top} ${topRight},${top} ${left + base},${bottom} ${cutX},${bottom}" fill="#90b7ed" stroke="#397bd9" stroke-width="2"/>`;
-      svg += `<polygon points="${left},${bottom} ${cutX},${top} ${cutX},${bottom}" fill="#dcecff" stroke="#a2c3ed" stroke-width="1.5" stroke-dasharray="5 4"/>`;
-      if (puzzle.phase !== 'complete') svg += `<polygon points="${topRight},${top} ${left + base},${bottom} ${topRight},${bottom}" fill="#eff9f2" stroke="#47a77d" stroke-width="2" stroke-dasharray="7 5"/>`;
-      foreground = `<g data-piece="true" transform="translate(${puzzle.pieceDx} ${puzzle.pieceDy})"><polygon points="${left},${bottom} ${cutX},${top} ${cutX},${bottom}" fill="#4d8ddd" stroke="#2e69b8" stroke-width="3"/><polygon points="${left},${bottom} ${cutX},${top} ${cutX},${bottom}" fill="transparent" stroke="transparent" stroke-width="14"/></g>`;
+      svg += `<polygon points="${cutX},${top} ${topRight},${top} ${left + base},${bottom} ${cutX},${bottom}" fill="#a9d3c8" fill-opacity="0.375" stroke="#1a817d" stroke-width="2"/>`;
+      svg += `<polygon points="${left},${bottom} ${cutX},${top} ${cutX},${bottom}" fill="#e7f2ed" fill-opacity="0.375" stroke="#a8c8bc" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+      if (puzzle.phase !== 'complete') svg += `<polygon points="${topRight},${top} ${left + base},${bottom} ${topRight},${bottom}" fill="#eff9f2" fill-opacity="0.375" stroke="#47a77d" stroke-width="2" stroke-dasharray="7 5"/>`;
+      foreground = `<g data-piece="true" transform="translate(${puzzle.pieceDx} ${puzzle.pieceDy})"><polygon points="${left},${bottom} ${cutX},${top} ${cutX},${bottom}" fill="#258b84" stroke="#176b68" stroke-width="3"/><polygon points="${left},${bottom} ${cutX},${top} ${cutX},${bottom}" fill="transparent" stroke="transparent" stroke-width="14"/></g>`;
     } else {
-      svg += `<polygon points="${cutX},${top} ${left + base},${top} ${left + base},${bottom} ${left},${bottom}" fill="#90b7ed" stroke="#397bd9" stroke-width="2"/>`;
-      svg += `<polygon points="${topRight},${top} ${left + base},${bottom} ${left + base},${top}" fill="#dcecff" stroke="#a2c3ed" stroke-width="1.5" stroke-dasharray="5 4"/>`;
-      if (puzzle.phase !== 'complete') svg += `<polygon points="${left},${top} ${cutX},${top} ${left},${bottom}" fill="#eff9f2" stroke="#47a77d" stroke-width="2" stroke-dasharray="7 5"/>`;
-      foreground = `<g data-piece="true" transform="translate(${puzzle.pieceDx} ${puzzle.pieceDy})"><polygon points="${topRight},${top} ${left + base},${bottom} ${left + base},${top}" fill="#4d8ddd" stroke="#2e69b8" stroke-width="3"/><polygon points="${topRight},${top} ${left + base},${bottom} ${left + base},${top}" fill="transparent" stroke="transparent" stroke-width="14"/></g>`;
+      svg += `<polygon points="${cutX},${top} ${left + base},${top} ${left + base},${bottom} ${left},${bottom}" fill="#a9d3c8" fill-opacity="0.375" stroke="#1a817d" stroke-width="2"/>`;
+      svg += `<polygon points="${topRight},${top} ${left + base},${bottom} ${left + base},${top}" fill="#e7f2ed" fill-opacity="0.375" stroke="#a8c8bc" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+      if (puzzle.phase !== 'complete') svg += `<polygon points="${left},${top} ${cutX},${top} ${left},${bottom}" fill="#eff9f2" fill-opacity="0.375" stroke="#47a77d" stroke-width="2" stroke-dasharray="7 5"/>`;
+      foreground = `<g data-piece="true" transform="translate(${puzzle.pieceDx} ${puzzle.pieceDy})"><polygon points="${topRight},${top} ${left + base},${bottom} ${left + base},${top}" fill="#258b84" stroke="#176b68" stroke-width="3"/><polygon points="${topRight},${top} ${left + base},${bottom} ${left + base},${top}" fill="transparent" stroke="transparent" stroke-width="14"/></g>`;
     }
   } else {
-    svg += `<rect x="${left}" y="${top}" width="${length * cell}" height="${width * cell}" fill="#90b7ed"/>`;
+    svg += `<rect x="${left}" y="${top}" width="${length * cell}" height="${width * cell}" fill="#a9d3c8" fill-opacity="0.375"/>`;
   }
   for (let i = 0; i <= count; i++) {
     const coordinate = i * cell;
@@ -445,10 +446,6 @@ function randomInt(min, max) {
 }
 
 function nextQuestionValues(shape, limit = questionMax) {
-  if (shape === 'parallelogram') {
-    const length = randomInt(1, limit);
-    return { length, width: randomInt(1, Math.min(limit, Math.floor(length * PARALLELOGRAM_TAN_ANGLE))) };
-  }
   if (shape === 'trapezoid') {
     const length = randomInt(1, limit - 1);
     return { length, width: randomInt(length + 1, limit), height: randomInt(1, limit) };
@@ -512,8 +509,11 @@ function renderChallenge() {
       ? `长 ${length} cm、宽 ${width} cm，面积是多少？`
       : `底 ${length} cm、高 ${width} cm，面积是多少？`;
   $('answer-input').value = '';
+  clearTimeout(answerFeedbackTimer);
+  answerFeedbackTimer = null;
   $('answer-feedback').textContent = '';
-  $('answer-feedback').className = 'feedback';
+  $('answer-feedback').removeAttribute('aria-label');
+  $('answer-feedback').className = 'puzzle-feedback';
   $('answer-feedback').hidden = true;
 }
 
@@ -575,20 +575,24 @@ $('reset-board').addEventListener('click', () => {
 
 function checkAnswer() {
   const feedback = $('answer-feedback');
-  feedback.hidden = false;
+  clearTimeout(answerFeedbackTimer);
+  answerFeedbackTimer = null;
   const answer = $('answer-input').value.trim();
   if (!answer) {
-    feedback.textContent = '先输入你的答案。';
-    feedback.className = 'feedback incorrect';
+    feedback.hidden = true;
+    $('answer-input').focus();
     return;
   }
   const { shape, values } = challenge;
-  const area = shapeArea(shape, values);
-  const correct = Number(answer) === area;
-  feedback.textContent = correct
-    ? `答对了！${equation(shape, values)}。`
-    : `再试一次：用 ${shape === 'triangle' ? '底 × 高 ÷ 2' : shape === 'parallelogram' ? '底 × 高' : shape === 'trapezoid' ? '（上底＋下底）× 高 ÷ 2' : '长 × 宽'} 计算。`;
-  feedback.className = `feedback ${correct ? 'correct' : 'incorrect'}`;
+  const correct = Number(answer) === shapeArea(shape, values);
+  feedback.textContent = correct ? '✓' : '✕';
+  feedback.className = `puzzle-feedback ${correct ? 'correct' : 'incorrect'}`;
+  feedback.setAttribute('aria-label', correct ? '回答正确' : '回答错误');
+  feedback.hidden = false;
+  answerFeedbackTimer = setTimeout(() => {
+    feedback.hidden = true;
+    answerFeedbackTimer = null;
+  }, 2000);
 }
 
 $('check-answer').addEventListener('click', checkAnswer);

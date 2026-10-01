@@ -199,10 +199,25 @@ site-header{display:block;width:100%}
 .challenge-section[data-page="challenge"] .answer-row #next-question{gap:8px}
 .challenge-section[data-page="challenge"] .answer-row #next-question span{font-size:22px}
 
-/* Dark teal surrounds the white practice components on this page only. */
-html[data-page="challenge"] body,
-.challenge-section[data-page="challenge"]{background:#173c3f}
-html[data-page="challenge"] .site-header{color:#f5faf7}
-html[data-page="challenge"] .site-header nav{color:#d1e3df}
-html[data-page="challenge"] .site-header nav a:hover,
-html[data-page="challenge"] .site-header nav a[aria-current="page"]{color:#a9d8c4}
+/* Use the opening menu's paper, teal and orange palette throughout. */
+body,.explore-section,.ideas-section,.challenge-section[data-page="challenge"]{background:var(--paper);color:var(--ink)}
+.grid-lab,.idea-card,.challenge-section[data-page="challenge"] .question-card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.shape-switch-button{background:#fff;color:var(--teal);border-color:#b9d4ca;box-shadow:none;opacity:1}
+.shape-switch-button.active{background:var(--teal);color:#fff;box-shadow:0 0 0 3px var(--teal-light)}
+.puzzle-action,.reset-button,.next-question-button{background:var(--teal);color:#fff;box-shadow:0 4px 12px #1a817d20;text-shadow:none}
+.next-question-button:focus-visible{outline-color:var(--teal)}
+.grid-lab .dimension-control{background:#f5f9f6;border-color:#dce6df}
+.dimension-heading strong{color:var(--teal)}
+.dimension-ruler,.ruler-cell{border-color:#b9d4ca}
+.ruler-cell.active{background:var(--teal);border-right-color:#b9d4ca}
+.range-wrap output{color:var(--teal)}
+.range-wrap input{accent-color:var(--teal)}
+.range-wrap input::-webkit-slider-thumb{background:var(--teal)}
+.range-wrap input::-moz-range-thumb{background:var(--teal)}
+.formula-box,.idea-visual{background:var(--teal-light)}
+.area-rule{background:#fff5e9;border-color:#f1dcc3;color:#75502e}
+.challenge-section[data-page="challenge"] .input-wrap{background:#f8fbf9;border-color:#b9d4ca}
+.challenge-section[data-page="challenge"] .answer-stepper button{background:var(--teal-light);color:var(--teal)}
+.challenge-section[data-page="challenge"] .answer-row #next-question{background:#fff0e2;color:#955e2c;border:1px solid #efd1b3;box-shadow:none}
+
+.challenge-section[data-page="challenge"] .question-card{position:relative}
