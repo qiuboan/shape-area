@@ -6,7 +6,7 @@
 
 ## 本地运行
 
-项目仅使用原生 HTML、CSS 和 JavaScript。顶部导航由 `site-header.js` 中的公用 Web Component 提供，构建时会一起复制到 `dist/`。可直接用浏览器打开 `index.html`，或在项目目录运行：
+项目仅使用原生 HTML、CSS 和 JavaScript。顶部导航由 `site-header.js` 中的公用 Web Component 提供，控制台由 `shape-controls.js` 中的公用 Web Component 提供，四种图形共享尺寸控件和恢复原状按钮。两个组件在构建时都会复制到 `dist/`。可直接用浏览器打开 `index.html`，或在项目目录运行：
 
 ```sh
 python3 -m http.server 8000

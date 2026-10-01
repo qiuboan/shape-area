@@ -252,9 +252,6 @@ function renderBoard() {
   $('shape-canvas').setAttribute('aria-label', mode === 'trapezoid'
     ? `10 乘 10 方格纸中，上底 ${length} 厘米、下底 ${width} 厘米、高 ${dimensions.height} 厘米的蓝色等腰梯形，面积 ${area} 平方厘米。`
     : `10 乘 10 方格纸中，${first} ${length} 厘米、${second} ${width} 厘米的蓝色${shape}，面积 ${area} 平方厘米。`);
-  $('motion-note').textContent = mode === 'trapezoid'
-    ? `当前上底 ${length} cm、下底 ${width} cm、高 ${dimensions.height} cm。`
-    : `当前${first} ${length} cm、${second} ${width} cm。拖动紫色圆点改变图形。`;
   $('total-count').textContent = `${area} cm²`;
   $('calculation-text').textContent = equation();
   renderPuzzleUI();
@@ -279,39 +276,7 @@ function renderPuzzleUI() {
   feedback.hidden = !current.feedback;
   feedback.textContent = current.feedback === 'correct' ? '✓' : current.feedback ? '✕' : '';
   feedback.className = `puzzle-feedback ${current.feedback === 'correct' ? 'correct' : 'incorrect'}`;
-  if (mode === 'triangle') {
-    $('motion-note').textContent = current.feedback === 'join-wrong'
-      ? '拼错了：把淡蓝色三角形拖到虚线缺口，再按“拼”。'
-      : current.phase === 'complete'
-        ? '拼对了！两个一样的三角形组成一个长方形。'
-        : copying
-          ? '按“复制三角形”，在右下角生成一块淡蓝色三角形。'
-          : '拖动淡蓝色三角形到虚线缺口，然后按“拼”。';
-    return;
-  }
-  if (mode === 'trapezoid') {
-    const destination = current.side === 'right' ? '左侧' : '右侧';
-    $('motion-note').textContent = current.feedback === 'cut-wrong'
-      ? '剪错了：把虚线拖到上底左端点或右端点，再按“剪”。'
-      : current.feedback === 'join-wrong'
-        ? `拼错了：把三角形拖到${destination}虚线缺口，再按“拼”。`
-        : current.phase === 'complete'
-          ? '拼对了！等腰梯形拼成同高的长方形，面积是（上底＋下底）×高÷2。'
-          : cutting
-            ? '拖动紫色虚线到上底左端点或右端点，然后按“剪”。'
-            : `剪下的三角形已翻转，拖到${destination}缺口，然后按“拼”。`;
-    return;
-  }
-  const destination = current.side === 'right' ? '左侧' : '右侧';
-  $('motion-note').textContent = current.feedback === 'cut-wrong'
-    ? '剪错了：拖动虚线到左上角顶点的正下方，或右下角顶点的正上方，再按“剪”。'
-    : current.feedback === 'join-wrong'
-      ? `拼错了：把剪下的蓝色三角形拖到${destination}虚线缺口，再按“拼”。`
-      : current.phase === 'complete'
-        ? '拼对了！竖切并平移后，图形变成了同底同高的长方形。'
-        : cutting
-          ? '拖动紫色虚线到左侧或右侧的正确位置，然后按“剪”。'
-          : `拖动剪下的蓝色三角形到${destination}缺口，然后按“拼”。`;
+
 }
 
 function svgPointer(event) {
@@ -330,7 +295,7 @@ function movePointerDrag(event) {
   if (!point) return;
   if (pointerDrag.kind === 'cut') {
     const min = GRID.left;
-    const max = GRID.left + dimensions.length * GRID.cell;
+    const max = GRID.left + dimensions.length * GRID.cell + parallelogramSkew();
     puzzle.cutX = Math.max(min, Math.min(max, point.x));
   } else if (pointerDrag.kind === 'trapezoid-cut') {
     const geometry = trapezoidGeometry();
@@ -457,7 +422,6 @@ function renderModeCopy() {
   const triangle = mode === 'triangle';
   const parallelogram = mode === 'parallelogram';
   const trapezoid = mode === 'trapezoid';
-  const usesBaseHeight = triangle || parallelogram;
   const shapeName = triangle ? '三角形' : parallelogram ? '平行四边形' : trapezoid ? '等腰梯形' : '长方形';
   for (const shape of ['rectangle', 'parallelogram', 'triangle', 'trapezoid']) {
     const button = $(`${shape}-tab`);
@@ -466,13 +430,14 @@ function renderModeCopy() {
     button.setAttribute('aria-pressed', String(active));
   }
   $('formula-caption').textContent = `${shapeName}面积`;
-  $('dimension-pill').textContent = shapeName;
-  $('length-label').textContent = trapezoid ? '上底' : usesBaseHeight ? '底' : '长';
-  $('width-label').textContent = trapezoid ? '下底' : usesBaseHeight ? '高' : '宽';
-  $('length-direction').textContent = trapezoid ? '上方横边' : usesBaseHeight ? '横向底边' : '横向边长';
-  $('width-direction').textContent = trapezoid ? '下方横边' : usesBaseHeight ? '纵向高度' : '纵向边长';
-  $('height-control').hidden = !trapezoid;
-  $('height-label').textContent = '高';
+  $('area-rule').classList.toggle('area-rule-trapezoid', trapezoid);
+  $('area-rule').textContent = {
+    rectangle: '面积 = 长 × 宽',
+    parallelogram: '面积 = 底 × 高',
+    triangle: '面积 = 底 × 高 ÷ 2',
+    trapezoid: '面积=（上底+下底）×高÷2'
+  }[mode];
+  document.querySelector('shape-controls').setShape(mode);
 }
 
 function randomInt(min, max) {

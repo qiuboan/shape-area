@@ -6,9 +6,10 @@
   <meta name="theme-color" content="#f7f5ef">
   <meta name="description" content="从 5 × 5 长方形开始，调整长和宽，直观看见 100 个方格中的面积变化。">
   <title>问茶研究室 · 面积看得见</title>
-  <link rel="stylesheet" href="styles.css?v=26">
+  <link rel="stylesheet" href="styles.css?v=53">
   <script src="site-header.js?v=1" defer></script>
-  <script src="app.js?v=35" defer></script>
+  <script src="shape-controls.js?v=3" defer></script>
+  <script src="app.js?v=41" defer></script>
 </head>
 <body>
   <site-header></site-header>
@@ -41,20 +42,16 @@
         <div class="lab-card grid-lab">
           <aside class="formula-sidebar" aria-labelledby="formula-title">
             <h3 class="formula-panel-title" id="formula-title">计算台</h3>
+            <p class="area-rule" id="area-rule">面积 = 长 × 宽</p>
             <div class="formula-box"><div class="formula-caption"><span id="formula-caption">长方形面积</span><span>✦</span></div><div class="formula" id="total-count">25 cm²</div><div class="calculation" id="calculation-text">5 × 5 = 25 cm²</div></div>
           </aside>
           <div class="lab-main">
             <div class="canvas-head"><div class="shape-switch" role="group" aria-label="选择图形"><button id="rectangle-tab" class="shape-switch-button active" type="button" aria-pressed="true">长方形</button><button id="parallelogram-tab" class="shape-switch-button" type="button" aria-pressed="false">平行四边形</button><button id="triangle-tab" class="shape-switch-button" type="button" aria-pressed="false">三角形</button><button id="trapezoid-tab" class="shape-switch-button" type="button" aria-pressed="false">等腰梯形</button></div></div>
             <div class="canvas-wrap graph-paper"><svg id="shape-canvas" viewBox="0 0 520 460" role="img" aria-label="10 乘 10 方格纸中，长和宽都是 5 厘米的蓝色长方形"></svg><div id="puzzle-feedback" class="puzzle-feedback" aria-live="assertive" hidden></div></div>
             <button id="puzzle-action" class="puzzle-action" type="button" hidden><span id="puzzle-action-icon" aria-hidden="true">✂</span><span id="puzzle-action-text">剪</span></button>
-            <div class="canvas-footer"><span id="motion-note" role="status" aria-live="polite">当前长 5 cm、宽 5 cm。拖动紫色圆点改变图形。</span><button id="reset-board" class="reset-button" type="button">恢复原状</button></div>
+
           </div>
-          <aside class="lab-sidebar" aria-labelledby="dimension-title">
-            <div class="sidebar-heading"><h3 id="dimension-title">控制台</h3><span class="pill" id="dimension-pill">长方形</span></div>
-            <div class="dimension-control" data-dimension="length"><div class="dimension-heading"><strong id="length-label">长</strong><span id="length-direction">横向边长</span></div><div class="dimension-ruler"><div class="ruler-bar" id="length-bar" aria-hidden="true"></div></div><div class="range-wrap"><output id="length-value" for="length-range">5</output><input id="length-range" type="range" min="1" max="10" step="1" value="5" aria-label="长，1 到 10 厘米"><div class="range-ends"><span>1</span><span id="length-max-label">10</span></div></div></div>
-            <div class="dimension-control" data-dimension="width"><div class="dimension-heading"><strong id="width-label">宽</strong><span id="width-direction">纵向边长</span></div><div class="dimension-ruler"><div class="ruler-bar" id="width-bar" aria-hidden="true"></div></div><div class="range-wrap"><output id="width-value" for="width-range">5</output><input id="width-range" type="range" min="1" max="10" step="1" value="5" aria-label="宽，1 到 10 厘米"><div class="range-ends"><span id="width-min-label">1</span><span id="width-max-label">10</span></div></div></div>
-            <div class="dimension-control" id="height-control" data-dimension="height" hidden><div class="dimension-heading"><strong id="height-label">高</strong><span>两底间的距离</span></div><div class="dimension-ruler"><div class="ruler-bar" id="height-bar" aria-hidden="true"></div></div><div class="range-wrap"><output id="height-value" for="height-range">5</output><input id="height-range" type="range" min="1" max="10" step="1" value="5" aria-label="高，1 到 10 厘米"><div class="range-ends"><span>1</span><span>10</span></div></div></div>
-          </aside>
+          <shape-controls></shape-controls>
         </div>
       </div>
     </section>
@@ -68,8 +65,8 @@
       </div>
     </section>
 
-    <section class="challenge-section" id="challenge" aria-labelledby="challenge-title" data-page="challenge"><div class="wrap challenge-layout"><h2 class="sr-only" id="challenge-title">面积挑战</h2><div class="question-card"><div class="question-icon" id="question-icon"></div><h3 id="question-text" aria-live="polite">长 5 cm、宽 5 cm，面积是多少？</h3><div class="answer-row"><label for="answer-input">我的答案</label><div class="input-wrap"><input id="answer-input" type="number" min="0" step="0.5" placeholder="输入数字" inputmode="decimal"><div class="answer-suffix"><div class="answer-stepper"><button id="answer-increase" type="button" aria-label="答案增加 0.5">▲</button><button id="answer-decrease" type="button" aria-label="答案减少 0.5">▼</button></div><span>cm²</span></div></div><button id="check-answer" type="button">检查答案</button></div><p class="feedback" id="answer-feedback" aria-live="polite" hidden></p></div><button id="next-question" class="next-question-button" type="button">再来一题 <span aria-hidden="true">↻</span></button></div></section>
+    <section class="challenge-section" id="challenge" aria-labelledby="challenge-title" data-page="challenge"><div class="wrap challenge-layout"><h2 class="sr-only" id="challenge-title">面积挑战</h2><div class="question-card"><div class="question-icon" id="question-icon"></div><h3 id="question-text" aria-live="polite">长 5 cm、宽 5 cm，面积是多少？</h3><div class="answer-row"><label for="answer-input">我的答案</label><div class="input-wrap"><input id="answer-input" type="number" min="0" step="0.5" placeholder="输入数字" inputmode="decimal"><div class="answer-suffix"><div class="answer-stepper"><button id="answer-increase" type="button" aria-label="答案增加 0.5">▲</button><button id="answer-decrease" type="button" aria-label="答案减少 0.5">▼</button></div><span>cm²</span></div></div><button id="check-answer" type="button">检查答案</button><button id="next-question" class="next-question-button" type="button">再来一题 <span aria-hidden="true">↻</span></button></div><p class="feedback" id="answer-feedback" aria-live="polite" hidden></p></div></div></section>
   </main>
-  <footer><div class="wrap footer-inner"><div><div class="footer-brand">问茶研究室</div><p>动手发现数学，自己看见答案。</p></div><a href="#menu">返回菜单 ↑</a></div></footer>
+
 </body>
 </html>
